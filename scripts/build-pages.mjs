@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { cp, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +43,13 @@ for (const full of await walk(dist)) {
   if (full === path.join(dist, 'index.html')) source = source.replaceAll('../transition/', './transition/');
   // Rewrite only site-owned root URLs; API paths remain relative to their backend.
   source = source.replace(/(["'\x60(])\/(?=(?:assets|vendor|models|transition|main|cover)\/)/g, '$1' + base);
+  if (full === path.join(dist, 'transition/images/images.html')) {
+    // Pages caches stable asset URLs. Change the entry URL when its code changes
+    // so visitors do not keep the old inlined renderer after a deployment.
+    const entry = await readFile(path.join(dist, 'transition/images/images.js'));
+    const version = createHash('sha256').update(entry).digest('hex').slice(0, 12);
+    source = source.replace('src="images.js"', `src="images.js?v=${version}"`);
+  }
   await writeFile(full, source);
 }
 const manifestPath = path.join(dist, 'assets/asset-manifest.js');
