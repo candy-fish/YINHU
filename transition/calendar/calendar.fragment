@@ -1,0 +1,130 @@
+<!-- 银壶编年史 - 日历弹窗 -->
+<div class="calendar-modal" id="calendarModal">
+    <div class="chronicle-container">
+        <!-- 顶部标题栏 -->
+        <div class="chronicle-header">
+            <div class="header-left">
+                <div class="header-icon">
+                    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle class="hi-line" cx="18" cy="18" r="16.8"/>
+                    <path class="hi-line" d="M18 18 L3.5 9.6 M18 18 L9.6 3.5 M18 18 L18 1.2 M18 18 L26.4 3.5 M18 18 L32.5 9.6"/>
+                    <path class="hi-line" d="M18 18 L3.5 26.4 M18 18 L18 34.8 M18 18 L26.4 32.5 M18 18 L32.5 26.4"/>
+                    <path class="hi-line" d="M18 18 L1.2 18"/>
+                    <path class="hi-bold" d="M18 18 L9.6 32.5"/>
+                    <path class="hi-line" d="M18 18 L34.8 18"/>
+                    <circle class="hi-solid" cx="18" cy="18" r="3.8"/>
+                    </svg>
+                </div>
+                <h1 class="header-title" id="chronicleTitle">红线编年</h1>
+            </div>
+            <div class="header-actions">
+                <button class="chronicle-close journal-toggle" id="journalToggle" type="button"
+                        title="打开笔记集" aria-label="打开笔记集" aria-pressed="false">
+                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                        <path class="bomb-fuse" d="M20.5 8.5c1.8-3.1 4.3-3.7 6.5-1.7"/>
+                        <path class="bomb-spark" d="M27 3.5v2.1M30 6.5h-2.1M29.2 4.4l-1.5 1.5"/>
+                        <circle class="bomb-body" cx="14.5" cy="17" r="9"/>
+                        <path class="bomb-shine" d="M10.1 12.6c1.1-.9 2.4-1.4 3.8-1.5"/>
+                    </svg>
+                </button>
+                <button class="chronicle-close" id="closeCalendar" type="button" aria-label="关闭日历">×</button>
+            </div>
+        </div>
+
+        <!-- 主体三栏 -->
+        <div class="chronicle-body">
+            <!-- 左侧：日历 -->
+            <div class="panel-calendar" id="calendarMain">
+                <div class="calendar-nav-bar">
+                    <button class="nav-btn" id="prevMonth">◀</button>
+                    <span class="current-epoch" id="currentMonth">2026.05</span>
+                    <button class="nav-btn" id="nextMonth">▶</button>
+                </div>
+
+                <div class="weekdays">
+                    <div class="weekday">日</div>
+                    <div class="weekday">一</div>
+                    <div class="weekday">二</div>
+                    <div class="weekday">三</div>
+                    <div class="weekday">四</div>
+                    <div class="weekday">五</div>
+                    <div class="weekday">六</div>
+                </div>
+
+                <div class="days-grid" id="daysGrid"></div>
+            </div>
+
+            <!-- 中间：编辑器 -->
+            <div class="panel-editor collapsed" id="editorPanel">
+                <div class="weaver-stage" id="weaverStage">
+                    <div class="forge-panel" id="forgePanel">
+                        <div class="forge-text" id="forgeText"></div>
+                    </div>
+                    <canvas class="weaver-canvas" id="weaverCanvas"></canvas>
+                </div>
+                <div class="typewriter" id="typewriter"></div>
+                <input type="text" class="tw-capture" id="twCapture" autocomplete="off">
+                <div class="editor-actions">
+                    <button class="btn-ghost" id="cancelEdit">Delete</button>
+                    <button class="btn-primary" id="saveNote">Store</button>
+                </div>
+            </div>
+
+            <!-- 右侧：纪念日 -->
+            <div class="panel-annals" id="annalsPanel">
+                <div class="annals-header">
+                    <div class="annals-title">纪念</div>
+                    <div class="annals-header-right">
+                        <button class="annals-add" id="addAnnal" title="新增纪念日">+</button>
+                    </div>
+                </div>
+                <div class="annals-list" id="annalsList">
+                    <!-- 由 JS 填充 -->
+                </div>
+                <!-- 新增纪念日面板 -->
+                <div class="annal-form" id="annalForm">
+                    <input type="text" class="annal-input" id="annalDateInput" placeholder="期" maxlength="10">
+                    <input type="text" class="annal-input" id="annalNameInput" placeholder="名" maxlength="20">
+                    <textarea class="annal-input annal-textarea" id="annalDescInput" placeholder="实" maxlength="120"></textarea>
+                    <button class="annal-store" id="annalStore">Store</button>
+                </div>
+            </div>
+        </div>
+        <!-- 底部：时间轴 -->
+        <div class="chronicle-timeline" id="timelinePanel">
+            <div class="timeline-track">
+                <div class="timeline-line"></div>
+                <div class="timeline-events" id="timelineEvents">
+                    <!-- 由 JS 填充 -->
+                </div>
+            </div>
+        </div>
+        <!-- 红线手记：与日历主体互斥显示（独立存储，与日历格子无联动） -->
+            <section class="chronicle-journal" id="journalPanel" aria-hidden="true">
+            <!-- 左上角：新建按钮（固定在滚动区之外，不随手记列表滚动） -->
+            <button class="journal-new btn-primary" id="journalNew" type="button" aria-expanded="false" aria-label="New note">New</button>
+
+            <div class="journal-content">
+                <main class="journal-main" id="journalMain">
+
+                    <div class="journal-new-panel" id="journalNewPanel" aria-hidden="true">
+                        <input class="journal-input" id="journalNewDate" type="text"
+                                inputmode="numeric" placeholder="2026.8.3 或 2026.8.3~8.10" autocomplete="off">
+                        <textarea class="journal-input journal-new-text" id="journalNewText"
+                                placeholder="组装"></textarea>
+                        <p class="journal-form-message" id="journalFormMessage" aria-live="polite"></p>
+                        <div class="journal-form-actions">
+                            <button class="btn-ghost" id="journalNewCancel" type="button" aria-label="Cancel">−</button>
+                            <button class="btn-primary" id="journalNewAdd" type="button" aria-label="Add">+</button>
+                        </div>
+                    </div>
+
+                    <div class="journal-list" id="journalList"></div>
+                </main>
+
+                <aside class="journal-index" id="journalIndex" aria-label="笔记日期索引"></aside>
+            </div>
+
+        </section>
+    </div>
+</div>

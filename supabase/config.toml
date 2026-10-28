@@ -1,0 +1,7 @@
+project_id = "blackdoor-yinhu"
+
+[functions.blackdoor]
+# The existing product is a public, anonymous shared workspace.
+# Database and Storage access remain server-side under RLS.
+verify_jwt = false
+

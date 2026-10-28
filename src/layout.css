@@ -1,0 +1,38 @@
+:root { --scene-height: 100vh; --visible-height: 100vh; --visible-top: 0px; }
+@supports (height: 100dvh) {
+    :root { --scene-height: 100dvh; --visible-height: 100dvh; }
+}
+html, body { width: 100%; height: var(--scene-height); }
+.space-page #canvas-container, .moon-page #canvas-container {
+    width: 100%; height: var(--scene-height);
+}
+.cover-page .metal-text {
+    font-size: clamp(1.35rem, 6vw, 4.5rem);
+    letter-spacing: clamp(.1em, 1.8vw, .3em);
+}
+.space-page {
+    --widget-size: min(300px, 38vw, 38dvh);
+    --widget-gap: clamp(12px, 3vw, 40px);
+}
+.space-page #calendarIcon,
+.space-page #imagesEntry {
+    width: var(--widget-size); height: var(--widget-size);
+    bottom: calc(var(--widget-gap) + env(safe-area-inset-bottom));
+    touch-action: manipulation;
+}
+.space-page #calendarIcon { right: calc(var(--widget-gap) + env(safe-area-inset-right)); }
+.space-page #imagesEntry { left: calc(var(--widget-gap) + env(safe-area-inset-left)); }
+.space-page #calendarIcon canvas { width: 100% !important; height: 100% !important; }
+.space-page #discoRope { width: 100%; height: var(--scene-height); }
+.moon-page #canvas-container { touch-action: none; }
+.mind-page { height: var(--scene-height); }
+.mind-back {
+    right: calc(48px + env(safe-area-inset-right));
+    bottom: calc(38px + env(safe-area-inset-bottom));
+}
+@media (max-width: 640px) {
+    .mind-back {
+        right: calc(22px + env(safe-area-inset-right));
+        bottom: calc(22px + env(safe-area-inset-bottom));
+    }
+}

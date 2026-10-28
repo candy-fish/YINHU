@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="fish-silver" x1="115" y1="34" x2="119" y2="67" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9cafa5"/><stop offset=".26" stop-color="#d9e3d8"/><stop offset=".48" stop-color="#fbf6e6"/><stop offset=".73" stop-color="#cbd7c7"/><stop offset="1" stop-color="#879e90"/>
+    </linearGradient>
+    <linearGradient id="fish-silk" x1="62" y1="51" x2="14" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d9e4d4" stop-opacity=".76"/><stop offset="1" stop-color="#dbe1d2" stop-opacity=".13"/>
+    </linearGradient>
+    <linearGradient id="fish-fin" x1="132" y1="44" x2="108" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d5e2d1" stop-opacity=".8"/><stop offset="1" stop-color="#dce5d1" stop-opacity=".13"/>
+    </linearGradient>
+  </defs>
+  <g data-fish-body="" stroke-linecap="round" stroke-linejoin="round">
+    <g data-fish-tail="" data-pivot="60 50">
+      <path d="M63 47C47 44 29 24 14 18C18 31 25 43 37 50C24 57 17 68 12 80C29 74 47 57 63 54C67 52 66 49 63 47Z" fill="url(#fish-silk)" stroke="#dce6d5" stroke-opacity=".65" stroke-width=".8"/>
+      <path d="M60 49C43 44 28 31 18 23M60 51C43 52 29 63 17 75M57 50L34 48M51 47L29 37M49 54L28 64" stroke="#dce8d4" stroke-opacity=".55" stroke-width=".65"/>
+    </g>
+    <g data-fish-dorsal="" data-pivot="111 36">
+      <path d="M82 41C88 31 103 25 115 25C111 29 116 34 128 37L137 41Z" fill="url(#fish-fin)" stroke="#d4e0d0" stroke-opacity=".6" stroke-width=".65"/>
+      <path d="M91 37L98 29M100 35L105 28M110 35L113 29M118 37L116 32" stroke="#e6ecdb" stroke-opacity=".48" stroke-width=".55"/>
+    </g>
+    <path d="M111 62C110 73 99 79 90 82C91 75 94 68 99 61M133 62C139 70 146 74 155 75C151 68 146 63 141 60" fill="url(#fish-fin)" stroke="#d1deca" stroke-opacity=".56" stroke-width=".65"/>
+    <path d="M102 66L94 77M108 65L99 76M140 66L150 72" stroke="#dfe9d5" stroke-opacity=".48" stroke-width=".55"/>
+    <path d="M57 47C73 45 87 37 105 35C128 32 151 37 167 44C176 48 181 50 183 53C177 58 169 60 160 62C140 68 120 69 101 64C83 60 73 55 57 54L61 51Z" fill="url(#fish-silver)" stroke="#d8e1d0" stroke-opacity=".8" stroke-width=".75"/>
+    <path d="M69 48C93 39 119 35 145 42" stroke="#f6f7e8" stroke-opacity=".66" stroke-width=".95"/>
+    <path d="M75 54C100 57 116 65 143 61" stroke="#718f7d" stroke-opacity=".45" stroke-width=".65"/>
+    <path d="M91 43Q95 46 91 49M101 40Q105 43 101 46M111 39Q115 42 111 45M121 39Q125 42 121 45M131 40Q135 43 131 46M81 48Q85 51 81 54M97 48Q101 51 97 54M107 46Q111 49 107 52M117 46Q121 49 117 52M127 47Q131 50 127 53M137 46Q141 49 137 52M102 55Q106 58 102 61M113 54Q117 57 113 60M124 55Q128 58 124 61M135 54Q139 57 135 60" stroke="#819b89" stroke-opacity=".27" stroke-width=".58"/>
+    <path d="M147 40C141 46 141 56 147 62" stroke="#819887" stroke-opacity=".8" stroke-width=".8"/>
+    <g data-fish-fin="" data-pivot="135 57">
+      <path d="M140 54C133 58 123 69 116 76C130 75 139 67 146 60" fill="url(#fish-fin)" stroke="#e0e8d5" stroke-opacity=".65" stroke-width=".65"/>
+      <path d="M139 58L122 72M141 60L127 72M136 58L120 70" stroke="#eaf0de" stroke-opacity=".52" stroke-width=".5"/>
+    </g>
+    <path d="M153 44Q159 42 166 46" stroke="#eff1df" stroke-opacity=".65" stroke-width=".8"/>
+    <circle cx="164" cy="49" r="2.1" fill="#4f6b59" stroke="#eaf0dd" stroke-width=".7"/>
+    <circle cx="164.5" cy="48.4" r=".55" fill="#fffae9"/>
+    <path d="M178 52.2Q182 52 184 53M179 55C184 55 188 57 191 59M178 51C183 47 187 47 191 48" stroke="#dce6d0" stroke-opacity=".8" stroke-width=".7"/>
+  </g>
+</svg>

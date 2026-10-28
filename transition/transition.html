@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>银壶 - 星际漫游</title>
+    <link rel="stylesheet" href="/vendor/fonts/fonts.css">
+    <link rel="stylesheet" href="calendar/calendar.css">
+    <!-- 迪斯科球样式 -->
+    <link rel="stylesheet" href="mind/disco.css">
+    <link rel="stylesheet" href="mind/entry-journey.css">
+    <script src="mind/entry-launch.js" defer></script>
+    <script src="/assets/asset-manifest.js"></script>
+    <script type="module" src="/assets/bootstrap.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'SimSun', '宋体', serif;
+            color: #f5f0e8;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 21;
+            pointer-events: none;
+        }
+
+        /* Three.js 背景 canvas 样式 */
+        #space-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;  /* 在最底层 */
+        }
+
+        #calendarIcon {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 300px;
+            height: 300px;
+            z-index: 100;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        #calendarIcon:hover {
+            transform: scale(1.05);
+        }
+
+        #calendarIcon canvas {
+            display: block;
+            border-radius: 50%;
+        }
+
+        /* 页面内容层 */
+        #page-content {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+    <link rel="stylesheet" href="/assets/layout.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="images-entry.css">
+    <link rel="stylesheet" href="images-journey.css">
+    <script type="module" src="images-journey.js"></script>
+    <script src="images-entry.js" defer></script>
+    <script src="counter/state.js" defer></script>
+    <script src="sidebar.js" defer></script>
+</head>
+<body class="space-page">
+    <!-- Three.js 背景容器 -->
+    <div id="space-bg-canvas"></div>
+
+    <svg id="discoRope" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="discoRopeSilver" x1="0" y1="0" x2="1" y2="0.18">
+                <stop offset="0%" stop-color="#74777a"></stop>
+                <stop offset="20%" stop-color="#d3cdc1"></stop>
+                <stop offset="32%" stop-color="#f2e9d6"></stop>
+                <stop offset="43%" stop-color="#858b91"></stop>
+                <stop offset="53%" stop-color="#b5b8b9"></stop>
+                <stop offset="70%" stop-color="#e0d8c9"></stop>
+                <stop offset="82%" stop-color="#777e88"></stop>
+                <stop offset="100%" stop-color="#cac9c1"></stop>
+            </linearGradient>
+            <filter id="discoRopeMetal" x="-60%" y="-10%" width="220%" height="125%" color-interpolation-filters="sRGB">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="0.3" result="bevel"></feGaussianBlur>
+                <feSpecularLighting in="bevel" surfaceScale="1.6" specularConstant="0.65" specularExponent="18" lighting-color="#fff5de" result="shine">
+                    <feDistantLight azimuth="235" elevation="55"></feDistantLight>
+                </feSpecularLighting>
+                <feComposite in="shine" in2="SourceAlpha" operator="in" result="clippedShine"></feComposite>
+                <feComposite in="clippedShine" in2="SourceGraphic" operator="arithmetic" k2="0.55" k3="0.85" result="metal"></feComposite>
+                <feDropShadow in="metal" dx="0.6" dy="0.8" stdDeviation="0.2" flood-color="#080b12" flood-opacity="0.9"></feDropShadow>
+            </filter>
+        </defs>
+        <path id="discoRopePath" d=""></path>
+        <path id="discoRopeEnd" d=""></path>
+        <text id="discoRopeText">
+            <textPath id="discoRopeTextPath" href="#discoRopePath" startOffset="3" lengthAdjust="spacingAndGlyphs">HappyTown HappyTown</textPath>
+        </text>
+    </svg>
+
+    <div id="canvas-container"></div>
+
+    <div id="calendarIcon" title="打开日历"></div>
+
+    <a id="imagesEntry" href="images/images.html" aria-label="打开映相" title="映相">
+        <canvas width="300" height="300" aria-hidden="true"></canvas>
+    </a>
+
+    <div id="calendarContainer"></div>
+
+    <nav class="transition-shortcuts" aria-label="工具入口">
+        <button class="shortcut-reveal" type="button" aria-label="展开工具入口" aria-expanded="false" aria-controls="counterShortcut"></button>
+        <a id="counterShortcut" class="transition-shortcut" href="counter/counter.html" aria-label="打开计数器" title="计数器">
+            <svg viewBox="0 0 108 124" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="honeySilver" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#9da6b3"/>
+                        <stop offset=".35" stop-color="#f6f8fb"/>
+                        <stop offset=".65" stop-color="#b7c0cd"/>
+                        <stop offset="1" stop-color="#dce2eb"/>
+                    </linearGradient>
+                </defs>
+                <g fill="none" stroke="url(#honeySilver)" stroke-linecap="round" stroke-linejoin="round">
+                    <g stroke-width="4.5" transform="translate(76 24)">
+                        <ellipse cy="-8" rx="4.5" ry="8" transform="rotate(-20)"/>
+                        <ellipse cy="-8" rx="4.5" ry="8" transform="rotate(52)"/>
+                        <ellipse cy="-8" rx="4.5" ry="8" transform="rotate(124)"/>
+                        <ellipse cy="-8" rx="4.5" ry="8" transform="rotate(196)"/>
+                        <ellipse cy="-8" rx="4.5" ry="8" transform="rotate(268)"/>
+                    </g>
+                    <path d="M29 62C23 72 16 84 18 96Q19 112 35 113H74Q91 112 91 96C92 85 83 72 79 62" stroke-width="6.5"/>
+                    <path d="M27 60Q52 56 81 60M36 62V75M52 61V68M76 62V78" stroke-width="7.5"/>
+                    <path d="M30 91Q29 99 35 101" stroke-width="5"/>
+                    <path d="M49 18L51 20M38 30L40 31M30 43L31 43" stroke-width="4.5"/>
+                </g>
+                <text id="honeyCount" class="honey-count" x="56" y="97" text-anchor="middle" font-size="20">0</text>
+            </svg>
+        </a>
+    </nav>
+
+    <!-- Three.js r128 -->
+    <script src="/vendor/three-r128/three.min.js"></script>
+    <!-- Three.js GLTF Loader -->
+    <script src="/vendor/three-r128/GLTFLoader.js"></script>
+    
+    <!-- p5.js -->
+    <script src="/vendor/p5/p5.min.js"></script>
+    
+    <!-- 太空背景 -->
+    <script src="js/space-background.js"></script>
+ 
+    <!-- 日历图标 -->
+    <script src="calendar/sketch.js"></script>
+
+    <!-- 迪斯科球 -->
+    <script src="mind/disco-lighting.js"></script>
+    <script src="mind/disco.js"></script>
+
+    <!-- 日历弹窗逻辑 -->
+    <script>
+        (() => {
+            const calendarContainer = document.getElementById('calendarContainer');
+            let calendarLoadPromise = null;
+
+            function showCalendar() {
+                const modal = document.getElementById('calendarModal');
+                if (!modal) return;
+
+                modal.classList.add('active');
+
+                if (typeof window.renderCalendar === 'function') {
+                    window.renderCalendar();
+                }
+            }
+
+            function loadCalendarScript() {
+                return new Promise((resolve, reject) => {
+                    const existingScript = document.querySelector('script[data-calendar-script]');
+
+                    if (existingScript) {
+                        if (existingScript.dataset.loaded === 'true') {
+                            resolve();
+                            return;
+                        }
+
+                        existingScript.addEventListener('load', resolve, { once: true });
+                        existingScript.addEventListener('error', reject, { once: true });
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = 'calendar/calendar.js';
+                    script.dataset.calendarScript = '';
+
+                    script.addEventListener('load', () => {
+                        script.dataset.loaded = 'true';
+                        resolve();
+                    }, { once: true });
+
+                    script.addEventListener('error', () => {
+                        script.remove();
+                        reject(new Error('calendar.js 加载失败'));
+                    }, { once: true });
+
+                    document.body.appendChild(script);
+                });
+            }
+
+            document.addEventListener('openCalendar', async () => {
+                if (document.getElementById('calendarModal')) {
+                    showCalendar();
+                    return;
+                }
+
+                try {
+                    if (!calendarLoadPromise) {
+                        calendarLoadPromise = fetch('calendar/calendar.fragment', { cache: 'no-store' })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`日历片段加载失败：HTTP ${response.status}`);
+                                }
+
+                                return response.text();
+                            })
+                            .then(html => {
+                                calendarContainer.innerHTML = html;
+
+                                if (!document.getElementById('calendarModal')) {
+                                    throw new Error('日历片段内容不完整');
+                                }
+
+                                return loadCalendarScript();
+                            });
+                    }
+
+                    await calendarLoadPromise;
+                    showCalendar();
+                } catch (error) {
+                    calendarLoadPromise = null;
+                    calendarContainer.innerHTML = '';
+                    console.error('日历初始化失败：', error);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#17191c">
+    <title>计数器 · 银壶</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="counter.css">
+    <link rel="preload" href="assets/reading-mascot.webp" as="image" fetchpriority="high">
+    <script src="loading.js"></script>
+    <script src="music.js" defer></script>
+    <script src="state.js" defer></script>
+    <script src="counter.js" defer></script>
+    <script src="cards.js" defer></script>
+    <script src="effects.js" defer></script>
+    <script src="mist.js" defer></script>
+</head>
+<body>
+    <div class="loading-screen" role="status" aria-label="正在加载计数器">
+        <div class="loading-companions" aria-hidden="true">
+            <div class="loading-mascot">
+                <img src="assets/reading-mascot.webp" alt="" width="142" height="110" fetchpriority="high" decoding="sync">
+                <svg class="loading-eyelids" viewBox="0 0 142 110" focusable="false">
+                    <path class="eyelid-paper" d="M47 40 62 39 62 56 48 58Z M79 40 91 40 96 51 91 57 78 57 75 51Z"/>
+                    <path class="eyelid-line" d="M49 48q5 4 10-1 M80 49q5 4 10-1"/>
+                </svg>
+            </div>
+            <svg class="loading-crayon-defs" width="0" height="0" focusable="false">
+                <defs>
+                    <filter id="loading-crayon" x="-25%" y="-25%" width="150%" height="150%">
+                        <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" seed="8" result="grain"/>
+                        <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.4" xChannelSelector="R" yChannelSelector="G"/>
+                    </filter>
+                    <symbol id="loading-dot" viewBox="0 0 24 24">
+                        <g filter="url(#loading-crayon)">
+                            <path d="M18.6 5.6C22 8.4 21.4 15.5 18 18.4C14.7 21.5 7.2 21 4.7 17.1C2.5 13.8 3.4 7 7.2 4.8C10.8 2.5 15.9 3.3 18.6 5.6Z"/>
+                            <path class="crayon-scribble" d="M7 8.7 16.3 6.7 M5.5 12 18 9.7 M6.2 15.5 18.4 13.1 M8 18 16.1 16.5"/>
+                        </g>
+                    </symbol>
+                </defs>
+            </svg>
+            <div class="loading-dots">
+                <svg class="loading-dot" viewBox="0 0 24 24" style="--dot: 0" focusable="false"><use href="#loading-dot"/></svg>
+                <svg class="loading-dot" viewBox="0 0 24 24" style="--dot: 1" focusable="false"><use href="#loading-dot"/></svg>
+                <svg class="loading-dot" viewBox="0 0 24 24" style="--dot: 2" focusable="false"><use href="#loading-dot"/></svg>
+                <svg class="loading-dot" viewBox="0 0 24 24" style="--dot: 3" focusable="false"><use href="#loading-dot"/></svg>
+            </div>
+        </div>
+    </div>
+    <svg class="background-heart" viewBox="0 0 1672 941" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="heart-crimson" x1="0" y1="0" x2=".3" y2="1">
+                <stop stop-color="#c51b38"/>
+                <stop offset="1" stop-color="#780b26"/>
+            </linearGradient>
+        </defs>
+        <path fill="url(#heart-crimson)" d="M1064 525C1040 488 1007 460 990 424C981 407 981 390 990 381C1002 367 1028 386 1043 407C1054 423 1058 443 1056 453C1055 425 1063 406 1080 388C1093 374 1106 369 1116 375C1134 384 1125 417 1112 445C1100 475 1079 503 1064 525Z"/>
+    </svg>
+    <div class="blood-mist" aria-hidden="true"><canvas class="mist-volume"></canvas><span></span><span></span><span></span></div>
+    <a class="counter-back" href="../transition.html" aria-label="返回 transition 页面" title="返回 transition">
+        <svg viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+            <rect x="3" y="3" width="22" height="22"/>
+            <path d="M10 14H18"/>
+        </svg>
+    </a>
+    <main class="stage" aria-label="计数器">
+        <section class="counter" aria-label="机械计数器">
+            <span class="glass-surface" aria-hidden="true"></span>
+            <svg class="perimeter-light" aria-hidden="true" focusable="false">
+                <g class="light-run"><path class="light-halo" pathLength="1"/><path class="light-core" pathLength="1"/></g>
+                <g class="light-run"><path class="light-halo" pathLength="1"/><path class="light-core" pathLength="1"/></g>
+                <g class="light-run"><path class="light-halo" pathLength="1"/><path class="light-core" pathLength="1"/></g>
+            </svg>
+            <div class="display">
+                <output id="count" class="count" aria-label="当前计数" aria-live="polite" aria-atomic="true">0</output>
+            </div>
+
+            <div class="button-well">
+                <button id="increment" class="increment" type="button" aria-label="计数加一">
+                    <span class="key-side" aria-hidden="true"></span>
+                    <span class="key-face" aria-hidden="true"></span>
+                </button>
+            </div>
+        </section>
+        <p id="syncStatus" class="sync-status" role="status" hidden></p>
+    </main>
+    <aside class="card-deck interactive-deck" aria-label="可堆叠卡牌">
+        <button class="stack-card" type="button" data-name="幸福感" data-count="1" aria-label="幸福感，当前 1 张；点击增加，拖出页面删除一张">
+            <span class="stack-layers" aria-hidden="true"></span>
+            <img class="stack-top" src="assets/happiness-card.png" alt="" draggable="false" decoding="sync">
+            <span class="stack-count" aria-hidden="true" hidden>1</span>
+        </button>
+        <button class="stack-card" type="button" data-name="妻子的不满" data-count="1" aria-label="妻子的不满，当前 1 张；点击增加，拖出页面删除一张">
+            <span class="stack-layers" aria-hidden="true"></span>
+            <img class="stack-top" src="assets/wife-discontent-card.png" alt="" draggable="false" decoding="sync">
+            <span class="stack-count" aria-hidden="true" hidden>1</span>
+        </button>
+    </aside>
+    <p class="sr-only" id="card-status" role="status" aria-live="polite" aria-atomic="true"></p>
+    <aside class="card-deck effect-deck" aria-label="效果卡牌，选中后点击主按钮累计次数">
+        <button class="effect-card" type="button" data-effect="scepter" data-name="生命权杖" data-count="0" aria-pressed="false" aria-label="生命权杖，累计 0 次；激活深红效果后点击主按钮计数">
+            <img src="assets/life-scepter-card.png" alt="" width="849" height="1851" decoding="sync" draggable="false">
+            <span class="stack-count" aria-hidden="true">0</span>
+        </button>
+        <button class="effect-card" type="button" data-effect="dragon" data-name="奇巧双头龙" data-count="0" aria-pressed="false" aria-label="奇巧双头龙，累计 0 次；激活染心和淡血雾后点击主按钮计数">
+            <img src="assets/twin-dragon-card.png" alt="" width="102" height="214" decoding="sync" draggable="false">
+            <span class="stack-count" aria-hidden="true">0</span>
+        </button>
+    </aside>
+    <canvas id="confetti" aria-hidden="true"></canvas>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300" fill="none" aria-hidden="true">
+  <defs>
+    <radialGradient id="deer-coat" cx="0" cy="0" r="1" gradientTransform="translate(88 142) rotate(74) scale(62 98)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6efda"/><stop offset=".42" stop-color="#dcd5bf"/><stop offset=".82" stop-color="#b1b29f"/><stop offset="1" stop-color="#858e7f"/>
+    </radialGradient>
+    <linearGradient id="deer-neck" x1="153" y1="107" x2="131" y2="171" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f2ecd8"/><stop offset=".45" stop-color="#d9d4be"/><stop offset="1" stop-color="#9da694"/>
+    </linearGradient>
+    <linearGradient id="deer-face" x1="174" y1="91" x2="184" y2="117" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6efda"/><stop offset=".55" stop-color="#d7d3bd"/><stop offset="1" stop-color="#a4ab97"/>
+    </linearGradient>
+    <linearGradient id="deer-leg" x1="-10" y1="0" x2="7" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e4ddc6"/><stop offset=".47" stop-color="#c3c4ae"/><stop offset="1" stop-color="#9fa996"/>
+    </linearGradient>
+    <linearGradient id="deer-far-leg" x1="-7" y1="0" x2="5" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b6b59f"/><stop offset="1" stop-color="#818d7d"/>
+    </linearGradient>
+    <linearGradient id="deer-antler" x1="150" y1="14" x2="169" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e9dfc4"/><stop offset=".53" stop-color="#bdbca4"/><stop offset="1" stop-color="#8d9783"/>
+    </linearGradient>
+  </defs>
+  <g data-deer-body="" stroke-linejoin="round" stroke-linecap="round">
+    <g data-leg="hind-far" transform="translate(60 163)" opacity=".72">
+    <g data-thigh="hind-far" transform="rotate(-38)">
+      <path d="M-10 -9C-16 -4 -14 9 -9 20L-5 35Q0 39 5 34L8 24C12 6 11 -6 4 -10Z" fill="url(#deer-far-leg)"/>
+      <path d="M-5 -3C-8 7 -4 20 -1 30" fill="none" stroke="#fff9e9" stroke-opacity=".18" stroke-width="1.1"/>
+      <g transform="translate(0 32)">
+    <g data-upper="hind-far" transform="rotate(69.559)">
+      <path d="M-5.2 -7C-8.2 6 -7 17.64 -3.5 35L-3 44Q0 47 3.4 43L4 34C6 19.74 5.2 9 4.2 -5Z" fill="url(#deer-far-leg)"/>
+      <path d="M-5 2C-4 16.8 -1 29.4 -1 37" fill="none" stroke="#fff9e9" stroke-opacity=".2" stroke-width="1.1"/>
+      <g data-lower="hind-far" transform="translate(0 42) rotate(-30.849)">
+        <path d="M-3.6 -3C-4.3 3 -2.1 18.56 -2 47L-3.7 55L3.8 55L2.1 46C2.4 18.56 4.2 3 3.3 -2Q0 -5 -3.6 -3Z" fill="url(#deer-far-leg)"/>
+        <path d="M-.8 4L-.4 46" stroke="#f6f0dd" stroke-opacity=".2" stroke-width=".85"/>
+        <g data-hoof="hind-far" transform="rotate(-0.710 0 58)">
+          <path d="M-3.7 53Q.5 54 3.4 52L5 57L4.4 58H-4.8L-4.6 56Z" fill="#7b8072"/>
+          <path d="M.4 54L.7 58" stroke="#626c5c" stroke-opacity=".7" stroke-width=".6"/>
+        </g>
+      </g>
+    </g>
+    </g></g>
+  </g>
+<g data-leg="front-far" transform="translate(137 164)" opacity=".72">
+    
+    <g data-upper="front-far" transform="rotate(0.000)">
+      <path d="M-6.2 -7C-9.2 6 -7 22.68 -3.5 47L-3 56Q0 59 3.4 55L4 46C6 25.38 6.2 9 5.2 -5Z" fill="url(#deer-far-leg)"/>
+      <path d="M-3 2C-4 21.6 -1 37.8 -1 49" fill="none" stroke="#fff9e9" stroke-opacity=".2" stroke-width="1.1"/>
+      <g data-lower="front-far" transform="translate(0 54) rotate(0.000)">
+        <path d="M-3.6 -3C-4.3 3 -2.1 20.48 -2 53L-3.7 61L3.8 61L2.1 52C2.4 20.48 4.2 3 3.3 -2Q0 -5 -3.6 -3Z" fill="url(#deer-far-leg)"/>
+        <path d="M-.8 4L-.4 52" stroke="#f6f0dd" stroke-opacity=".2" stroke-width=".85"/>
+        <g data-hoof="front-far" transform="rotate(0.000 0 64)">
+          <path d="M-3.7 59Q.5 60 3.4 58L5 63L4.4 64H-4.8L-4.6 62Z" fill="#7b8072"/>
+          <path d="M.4 60L.7 64" stroke="#626c5c" stroke-opacity=".7" stroke-width=".6"/>
+        </g>
+      </g>
+    </g>
+    
+  </g>
+    <path d="M46 145C35 141 29 133 27 128C35 129 45 133 50 140L52 149Z" fill="#bfc4ac"/>
+    <path d="M31 131Q39 135 45 143" stroke="#f4edda" stroke-width="1.5" stroke-opacity=".7"/>
+    <path d="M41 155C39 141 50 133 66 134C86 133 104 141 122 137C135 134 143 134 149 140C158 150 154 166 141 178C127 185 111 182 96 180C84 181 77 185 64 183C48 181 41 169 41 155Z" fill="url(#deer-coat)"/>
+    <path d="M47 143C66 135 82 141 101 143C115 145 126 141 135 136" stroke="#fff5df" stroke-opacity=".53" stroke-width="1.4"/>
+    <path d="M48 171C61 179 77 179 89 175C104 172 119 178 131 175" stroke="#f0ead5" stroke-opacity=".32" stroke-width="2"/>
+    <path d="M46 148C45 162 53 172 62 174C69 170 72 159 69 146" fill="#f3ead3" fill-opacity=".12"/>
+    <g data-leg="hind-near" transform="translate(67 163)">
+    <g data-thigh="hind-near" transform="rotate(-38)">
+      <path d="M-10 -9C-16 -4 -14 9 -9 20L-5 35Q0 39 5 34L8 24C12 6 11 -6 4 -10Z" fill="url(#deer-leg)"/>
+      <path d="M-5 -3C-8 7 -4 20 -1 30" fill="none" stroke="#fff9e9" stroke-opacity=".4" stroke-width="1.1"/>
+      <g transform="translate(0 32)">
+    <g data-upper="hind-near" transform="rotate(68.559)">
+      <path d="M-5.2 -7C-8.2 6 -7 17.64 -3.5 35L-3 44Q0 47 3.4 43L4 34C6 19.74 5.2 9 4.2 -5Z" fill="url(#deer-leg)"/>
+      <path d="M-5 2C-4 16.8 -1 29.4 -1 37" fill="none" stroke="#fff9e9" stroke-opacity=".46" stroke-width="1.1"/>
+      <g data-lower="hind-near" transform="translate(0 42) rotate(-37.145)">
+        <path d="M-3.6 -3C-4.3 3 -2.1 18.56 -2 47L-3.7 55L3.8 55L2.1 46C2.4 18.56 4.2 3 3.3 -2Q0 -5 -3.6 -3Z" fill="url(#deer-leg)"/>
+        <path d="M-.8 4L-.4 46" stroke="#f6f0dd" stroke-opacity=".46" stroke-width=".85"/>
+        <g data-hoof="hind-near" transform="rotate(6.586 0 58)">
+          <path d="M-3.7 53Q.5 54 3.4 52L5 57L4.4 58H-4.8L-4.6 56Z" fill="#919686"/>
+          <path d="M.4 54L.7 58" stroke="#626c5c" stroke-opacity=".7" stroke-width=".6"/>
+        </g>
+      </g>
+    </g>
+    </g></g>
+  </g>
+<g data-leg="front-near" transform="translate(145 162)">
+    
+    <g data-upper="front-near" transform="rotate(0.000)">
+      <path d="M-6.2 -7C-9.2 6 -7 23.52 -3.5 49L-3 58Q0 61 3.4 57L4 48C6 26.32 6.2 9 5.2 -5Z" fill="url(#deer-leg)"/>
+      <path d="M-3 2C-4 22.400000000000002 -1 39.199999999999996 -1 51" fill="none" stroke="#fff9e9" stroke-opacity=".46" stroke-width="1.1"/>
+      <g data-lower="front-near" transform="translate(0 56) rotate(0.000)">
+        <path d="M-3.6 -3C-4.3 3 -2.1 20.48 -2 53L-3.7 61L3.8 61L2.1 52C2.4 20.48 4.2 3 3.3 -2Q0 -5 -3.6 -3Z" fill="url(#deer-leg)"/>
+        <path d="M-.8 4L-.4 52" stroke="#f6f0dd" stroke-opacity=".46" stroke-width=".85"/>
+        <g data-hoof="front-near" transform="rotate(0.000 0 64)">
+          <path d="M-3.7 59Q.5 60 3.4 58L5 63L4.4 64H-4.8L-4.6 62Z" fill="#919686"/>
+          <path d="M.4 60L.7 64" stroke="#626c5c" stroke-opacity=".7" stroke-width=".6"/>
+        </g>
+      </g>
+    </g>
+    
+  </g>
+    <path d="M58 151C64 149 72 153 76 161C77 165 76 171 74 174" stroke="#efe8d2" stroke-opacity=".44" stroke-width="1.25"/>
+    <path d="M137 151C143 153 148 162 147 171" stroke="#f4ecda" stroke-opacity=".46" stroke-width="1.2"/>
+    <g data-deer-neck="" data-pivot="133 170">
+    <path d="M119 147C134 137 143 117 152 102C156 94 162 91 168 97C175 106 173 118 167 131L153 164C149 177 138 184 125 178C122 166 125 155 119 147Z" fill="url(#deer-neck)"/>
+    <path d="M146 151C151 135 156 125 160 113C163 106 162 101 160 99" stroke="#fff5e0" stroke-opacity=".55" stroke-width="1.4"/>
+    <path d="M141 169C147 158 152 141 155 133" stroke="#939f8b" stroke-opacity=".5" stroke-width="1"/>
+    <g data-deer-head="" data-pivot="158 108">
+      <path d="M159 95C153 83 145 69 147 52C148 36 152 23 150 13M150 42C142 37 138 29 137 20M148 56C138 52 130 43 128 33M149 69C140 65 135 60 131 55M150 28L159 20L161 11" stroke="url(#deer-antler)" stroke-width="2.6"/>
+      <path d="M172 94C174 79 180 64 181 49C183 34 181 25 185 14M181 48C191 43 197 35 199 24M182 34L173 26L170 17M177 66C187 63 194 56 198 50M193 39L207 35L211 27" stroke="url(#deer-antler)" stroke-width="2.5"/>
+      <path d="M139 32L130 26L127 19M133 43L122 39L117 32M142 62L137 48M177 24L181 16M196 31L194 19M189 60L190 48M206 35L212 39M151 23L149 13" stroke="#dbd6bd" stroke-opacity=".86" stroke-width="1.15"/>
+      <g data-deer-ear="far" data-pivot="160 89">
+      <path d="M158 91C149 87 145 78 145 69C154 71 160 79 162 88" fill="#c7cbb2"/>
+      <path d="M158 87C153 82 150 77 149 74" stroke="#8d9b84" stroke-width="1.2"/>
+      </g>
+      <g data-deer-ear="near" data-pivot="173 91">
+      <path d="M171 89C172 78 179 70 187 67C188 76 182 87 175 94" fill="#e5dfc6"/>
+      <path d="M175 87C177 80 181 75 183 73" stroke="#a1aa92" stroke-width="1.35"/>
+      </g>
+      <path d="M158 99C157 92 163 86 170 87C180 87 185 95 190 99L207 105C212 107 215 110 213 114C210 118 202 116 196 116L183 111C176 110 173 114 168 112C164 110 159 106 158 99Z" fill="url(#deer-face)"/>
+      <path d="M164 94C171 90 178 93 181 98M181 102C190 104 197 109 206 109" stroke="#fff7df" stroke-opacity=".58" stroke-width="1"/>
+      <path d="M166 105C170 108 174 108 177 107" stroke="#9da68f" stroke-opacity=".7" stroke-width="1"/>
+      <g data-deer-eye="">
+      <path d="M176 98Q179 95.8 182 98.2Q179.2 101.3 176 98Z" fill="#414d40"/>
+      <circle cx="179.1" cy="97.8" r=".63" fill="#fdf8df"/>
+      </g>
+      <g data-deer-muzzle="" data-pivot="194 110">
+      <path d="M196 110C201 111 207 111.5 211 111L211 114C206 116.3 202 115.8 197 114Z" fill="#c2c6af"/>
+      <path d="M208 106.4Q214.1 108.3 213.4 111.8Q209.6 112.5 207.6 110Z" fill="#65715e"/>
+      <path d="M199 113Q205 114.8 209 113.8" stroke="#7f8c75" stroke-width=".8"/>
+      </g>
+      <path d="M166 110C165 116 161 120 159 123" stroke="#f8eed8" stroke-opacity=".32" stroke-width="1.7"/>
+    </g>
+    </g>
+  </g>
+</svg>

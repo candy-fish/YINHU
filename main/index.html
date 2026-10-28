@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>月球漫游 - 无加载界面</title>
+<link rel="stylesheet" href="/vendor/fonts/fonts.css">
+<script src="/assets/asset-manifest.js"></script>
+<script type="module" src="/assets/bootstrap.js"></script>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#000; overflow:hidden; cursor:grab; }
+    body:active { cursor:grabbing; }
+    #canvas-container { width:100vw; height:100vh; }
+</style>
+<link rel="stylesheet" href="/assets/layout.css">
+</head>
+<body class="moon-page">
+<div id="canvas-container"></div>
+
+<script src="/vendor/three-r128/three.min.js"></script>
+<script src="/vendor/three-r128/GLTFLoader.js"></script>
+
+<script>
+// ========================
+// 场景与渲染器
+// ========================
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x00000a);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// ========================
+// 光照设置
+// ========================
+const sunLight = new THREE.DirectionalLight(0xccccff, 1.5);
+sunLight.position.set(1,1,0.5).normalize().multiplyScalar(500);
+sunLight.castShadow = true;
+sunLight.shadow.bias = -0.0005;
+scene.add(sunLight);
+
+const hemiLight = new THREE.HemisphereLight(0x8888ff, 0x111122, 0.4);
+scene.add(hemiLight);
+
+const ambientLight = new THREE.AmbientLight(0x222233, 0.6);
+scene.add(ambientLight);
+
+const rimLight = new THREE.PointLight(0x8888ff, 0.25, 1000, 2);
+rimLight.position.set(0, 500, 0);
+scene.add(rimLight);
+
+// ========================
+// Pivot -> Walker -> Camera 架构
+// ========================
+const pivot = new THREE.Group(); scene.add(pivot);
+const walker = new THREE.Group(); walker.up.set(1,0,0); pivot.add(walker);
+const camera = new THREE.PerspectiveCamera(60, container.clientWidth/container.clientHeight, 0.1, 5000);
+camera.rotation.order='YXZ'; walker.add(camera);
+
+// ========================
+// GLTF 月球模型加载
+// ========================
+const loader = new THREE.GLTFLoader();
+let moonRadius = 1;
+const eyeHeight = 0.3;
+
+loader.load(window.BLACKDOOR_ASSETS?.models?.moon || '../models/moon.glb', gltf => {
+    const moon = gltf.scene;
+    moon.traverse(c => {
+        if(c.isMesh){
+            c.material = new THREE.MeshStandardMaterial({
+                map: c.material.map || null,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            c.castShadow = true;
+            c.receiveShadow = true;
+        }
+    });
+    scene.add(moon);
+
+    const box = new THREE.Box3().setFromObject(moon);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    moonRadius = Math.max(size.x,size.y,size.z)/2;
+    moon.position.sub(center);
+
+    walker.position.set(moonRadius + eyeHeight, 0, 0);
+    walker.lookAt(moonRadius + eyeHeight, 0, 10);
+
+    sunLight.position.set(moonRadius, moonRadius*1.5, moonRadius*0.5);
+    rimLight.position.set(0, moonRadius*2, 0);
+},undefined, err => { console.error('模型加载失败', err); });
+
+// ========================
+// 鼠标交互 + 双击锁定/解锁视角和拖拽
+// ========================
+let isDragging = false, lastX = null, lastY = null;
+let yaw = 0, pitch = 0;
+let cameraLocked = false;
+
+let activePointer = null, dragStart = null, lastTap = null, lastTouchTime = -Infinity;
+container.addEventListener('pointerdown', e => {
+    if(e.button !== 0 || !e.isPrimary) return;
+    activePointer = e.pointerId;
+    isDragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    dragStart = { x: e.clientX, y: e.clientY, moved: false };
+    container.setPointerCapture(e.pointerId);
+});
+container.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' && e.pointerId !== activePointer) return;
+    if (activePointer !== null && e.pointerId !== activePointer) return;
+    if(lastX===null){ lastX=e.clientX; lastY=e.clientY; return; }
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    if (dragStart && Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) > 10) dragStart.moved = true;
+
+    if(cameraLocked) return;
+
+    if(isDragging){
+        pivot.rotation.y -= dx*0.003;
+        if(e.pointerType !== 'mouse') {
+            pitch = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, pitch - dy*0.003));
+            camera.rotation.set(pitch, yaw, 0);
+        }
+    } else {
+        yaw -= dx*0.003;
+        pitch -= dy*0.003;
+        const PI2 = Math.PI/2 - 0.05;
+        pitch = Math.max(-PI2, Math.min(PI2, pitch));
+        camera.rotation.set(pitch, yaw, 0);
+    }
+});
+function finishPointer(e) {
+    if(e.pointerId !== activePointer) return;
+    if(e.pointerType === 'touch') {
+        lastTouchTime = performance.now();
+        if(e.type === 'pointerup' && dragStart && !dragStart.moved) {
+            if(lastTap && lastTouchTime - lastTap.time < 350 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 32) {
+                cameraLocked = !cameraLocked; lastTap = null;
+            } else lastTap = {time: lastTouchTime, x: e.clientX, y: e.clientY};
+        } else lastTap = null;
+    }
+    isDragging = false; activePointer = null; dragStart = null;
+    lastX = null; lastY = null;
+}
+container.addEventListener('pointerup', finishPointer);
+container.addEventListener('pointercancel', finishPointer);
+container.addEventListener('lostpointercapture', finishPointer);
+
+// 双击切换锁定状态
+container.addEventListener('dblclick', () => {
+    if(performance.now() - lastTouchTime < 700) return;
+    cameraLocked = !cameraLocked;
+});
+
+// ========================
+// 窗口自适应
+// ========================
+function resizeScene() {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+}
+new ResizeObserver(resizeScene).observe(container);
+
+// ========================
+// 渲染循环
+// ========================
+function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); }
+animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,1736 @@
+/* ============================================
+   银壶编年史 - 全局变量
+   ============================================ */
+:root {
+    --bg-deep: #050508;
+    --bg-panel: rgba(12, 12, 20, 0.92);
+    --bg-hover: rgba(136, 153, 255, 0.08);
+    --bg-active: rgba(136, 153, 255, 0.15);
+    
+    --text-primary: #f5f0e8;
+    --text-secondary: rgba(245, 240, 232, 0.55);
+    --text-dim: rgba(245, 240, 232, 0.25);
+    --text-gold: #c9a96e;
+    
+    --accent: #8899ff;
+    --accent-glow: rgba(136, 153, 255, 0.4);
+    --accent-soft: rgba(136, 153, 255, 0.2);
+    
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.12);
+    --border-accent: rgba(136, 153, 255, 0.3);
+    
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+
+    --line-inner: #63615e;  /* 内部格线：深银 */
+    --line-outer: #b9bfc9;  /* 外围边框：浅银 */
+    --font-serif: 'SimSun', 'Songti SC', 'Noto Serif SC', serif;
+    --font-mono: 'Courier New', 'SF Mono', monospace;
+}
+
+/* ============================================
+   弹窗容器
+   ============================================ */
+.calendar-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(30px) saturate(1.2);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendar-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* ============================================
+   编年史主容器
+   ============================================ */
+.chronicle-container {
+    width: 1600px;
+    max-width: 96vw;
+    height: 92vh;
+    background: rgba(34, 34, 52, 0.30);          /* 半透明，透出底层场景 */
+    backdrop-filter: blur(26px) saturate(1.5) brightness(1.25);  /* 磨砂模糊 */
+    -webkit-backdrop-filter: blur(26px) saturate(1.5) brightness(1.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 
+        0 0 0 1px rgba(136, 153, 255, 0.1),
+        0 25px 80px rgba(0, 0, 0, 0.7),
+        0 0 120px rgba(136, 153, 255, 0.05);
+    position: relative;
+}
+
+/* 磨砂颗粒 + 玻璃高光 */
+.chronicle-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.6'/></svg>");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);  /* 顶部玻璃高光 */
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* 背景纹理 */
+.chronicle-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(136, 153, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(201, 169, 110, 0.02) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ============================================
+   顶部标题栏
+   ============================================ */
+.chronicle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-icon .hi-bold {
+    fill: none;
+    stroke: #a71b20;
+    stroke-width: 3;      /* 加粗的左下轴 */
+    stroke-linecap: butt;
+}
+
+.header-icon svg {
+    width: 100%;   /* 充满整个图标 */
+    height: 100%;
+    display: block;
+}
+
+.header-icon .hi-line {
+    fill: none;
+    stroke: #a71b20;
+    stroke-width: 1.4;
+    stroke-linecap: butt;    /* 平头：弧线端点不再凸出小圆头 */
+}
+
+.header-icon .hi-solid {
+    fill: #a71b20;
+}
+
+.header-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: 8px;
+}
+
+.header-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 4px;
+    margin-left: 4px;
+}
+
+.chronicle-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-medium);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-family: var(--font-serif);
+    line-height: 1;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chronicle-close:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 4px;
+}
+
+.journal-toggle svg {
+    width: 21px;
+    height: 21px;
+    overflow: visible;
+}
+
+.journal-toggle .bomb-body,
+.journal-toggle .bomb-fuse,
+.journal-toggle .bomb-spark,
+.journal-toggle .bomb-shine {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.journal-toggle .bomb-body { stroke-width: 1.7; }
+.journal-toggle .bomb-fuse { stroke-width: 1.6; }
+.journal-toggle .bomb-spark { stroke-width: 1.35; }
+.journal-toggle .bomb-shine { stroke-width: 1.4; opacity: 0.65; }
+
+.chronicle-close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-hover);
+    transform: rotate(90deg);
+}
+
+.chronicle-close.journal-on {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-hover);
+    transform: rotate(90deg);
+}
+
+/* ============================================
+   主体三栏布局
+   ============================================ */
+.chronicle-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* 通用面板样式 */
+.panel-calendar,
+.panel-editor,
+.panel-annals {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ============================================
+   左侧：日历面板
+   ============================================ */
+.panel-calendar {
+    width: 520px;
+    min-width: 520px;
+    padding: 28px 32px;
+}
+
+.calendar-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;  /* 与下方星期栏相连 */
+    padding: 12px 16px;
+    border-top: 2px solid var(--line-outer);
+    border-left: 2px solid var(--line-outer);
+    border-right: 2px solid var(--line-outer);
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.nav-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.22);  /* 凹槽底 */
+    color: #2e3038;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.28),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.55),  /* 上内阴影 = 凹进去 */
+        0 1px 0 rgba(255, 255, 255, 0.14);    /* 下缘高光 = 嵌入板材 */
+}
+
+.nav-btn:hover {
+    background: rgba(0, 0, 0, 0.32);
+    color: #1d1f26;
+}
+
+.current-epoch {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: #2e3038;  /* 凹槽色，与日期数字同款 */
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.3),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* 星期标题 */
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin-bottom: 0;
+    border-top: 2px solid var(--line-inner);
+    border-left: 2px solid var(--line-outer);
+    border-right: 2px solid var(--line-outer);
+}
+
+.weekday {
+    aspect-ratio: 1;  /* 与日期格相同的正方形 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    font-family: var(--font-serif);  /* 宋体 */
+    color: #a71b20;  /* 深红色 */
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.25),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+    border-right: 2px solid var(--line-inner);
+    border-bottom: 2px solid var(--line-inner);
+    background-color: #63615e;  /* 噪点底色（中灰） */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* 日期网格：连体金属板 */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin: 0;
+    border-left: 2px solid var(--line-outer);
+    border-right: 2px solid var(--line-outer);
+    border-bottom: 2px solid var(--line-outer);  /* 顺便补上这条，见② */
+    background: #0b0c0f;
+}
+
+.day-cell {
+    aspect-ratio: 1;  /* 正方形格子 */
+    border-right: 2px solid var(--line-inner);  /* 只画右/下两边，交叉点永远闭合 */
+    border-bottom: 2px solid var(--line-inner);
+    border-radius: 0;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.weekday:last-child {
+    border-right: none;
+}
+
+.day-cell:nth-child(7n) {
+    border-right: none;
+}
+
+.day-cell:nth-last-child(-n+7) {
+    border-bottom: none;
+}
+
+
+.day-cell:hover {
+    background-color: #75736f;
+    box-shadow:
+        inset 0 0 0 2px #a8874a,  /* 悬停亮金环 */
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+
+.day-cell.active {
+    box-shadow:
+        inset 0 0 0 2px var(--accent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 0 24px rgba(136, 153, 255, 0.18);
+}
+
+.day-cell.today {
+    box-shadow:
+        inset 0 0 0 2px rgba(201, 169, 110, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 0 18px rgba(201, 169, 110, 0.08);
+}
+
+.day-cell.today::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    background: var(--text-gold);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(201, 169, 110, 0.6);
+}
+
+.day-cell.has-note::before {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.day-cell.other-month {
+    color: var(--text-dim);
+    background-color: #32419e;
+    box-shadow:    
+         inset 0 1px 0 rgba(255, 255, 255, 0.15),
+         inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.day-cell.other-month:hover {
+    background-color: #484642;
+}
+
+.day-number {
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    line-height: 1;
+    color: #2e3038;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.3),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.day-cell.today .day-number {
+    color: var(--text-gold);
+    text-shadow:
+        0 0 8px rgba(201, 169, 110, 0.35),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.day-cell.active .day-number {
+    color: #cdd3ff;
+    text-shadow:
+        0 0 8px rgba(136, 153, 255, 0.4),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.day-note-preview {
+    margin-top: 4px;
+    font-size: 9px;
+    color: var(--text-dim);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-serif);
+}
+
+.day-anniversary-mark {font-size: 10px;}
+
+/* ============================================
+   中间：编辑器面板
+   ============================================ */
+.panel-editor {
+    flex: 1;
+    min-width: 0;
+    padding: 28px 32px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel-editor.collapsed {
+    width: 0;
+    padding: 28px 0;
+    opacity: 0;
+    overflow: hidden;
+    flex: 0;
+}
+
+.editor-textarea:focus {
+    outline: none;
+    border-color: var(--border-accent);
+    background: rgba(136, 153, 255, 0.03);
+    box-shadow: 0 0 30px rgba(136, 153, 255, 0.05);
+}
+
+.editor-textarea::placeholder {
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.btn-ghost,
+.btn-primary {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 0; /* 尖角直角 */
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background-color: #75736f;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.25),
+        0 -1px 1px rgba(0, 0, 0, 0.65);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.55),
+        0 1px 0 rgba(255, 255, 255, 0.14);
+    transition: all 0.15s ease;
+}
+
+.btn-ghost:hover,
+.btn-primary:hover {
+    background-color: #75736f;
+}
+
+.btn-ghost:active,
+.btn-primary:active {
+    transform: scale(0.96);
+    box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================
+   右侧：纪念日面板
+   ============================================ */
+.panel-annals {
+    width: 300px;
+    min-width: 300px;
+    padding: 28px 24px;
+    margin-left: auto;  /* 永远贴紧弹窗最右侧 */
+}
+
+.annals-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* 标题居中 */
+    position: relative;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+}
+
+/* 加号钉在右侧，不影响标题居中 */
+.annals-header-right {
+    position: absolute;
+    right: 0;
+}
+
+.annals-title {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--text-primary);
+    letter-spacing: 6px;
+    margin-bottom: 6px;
+}
+
+/* 标题"纪念"的红色方格 */
+.annals-header .annals-title {
+    margin-bottom: 0;
+    padding: 8px 14px;
+    border: 1px solid #a71b20; /* 边框由2px → 1px 变细 */
+    border-radius: 0; /* 圆角清零，尖角直角 */
+}
+
+.annals-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.annals-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+/* 统一滚动条：细金属风 */
+.annals-list,
+.annal-desc,
+.panel-calendar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(185, 191, 201, 0.35) transparent;
+}
+
+.annals-list::-webkit-scrollbar,
+.annal-desc::-webkit-scrollbar,
+.panel-calendar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.annals-list::-webkit-scrollbar-track,
+.annal-desc::-webkit-scrollbar-track,
+.panel-calendar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.annals-list::-webkit-scrollbar-thumb,
+.annal-desc::-webkit-scrollbar-thumb,
+.panel-calendar::-webkit-scrollbar-thumb {
+    background: rgba(185, 191, 201, 0.35);
+    border-radius: 3px;
+}
+
+.annals-list::-webkit-scrollbar-thumb:hover,
+.annal-desc::-webkit-scrollbar-thumb:hover,
+.panel-calendar::-webkit-scrollbar-thumb:hover {
+    background: rgba(185, 191, 201, 0.6);
+}
+
+.annal-item {
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border: 2px solid var(--line-outer);  /* 日历同款浅银外框 */
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background-color: #484642;  /* 与 .day-cell.other-month:hover 一致 */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* 纪念日条目：镌刻文字 */
+/* 纪念日条目：镌刻文字 */
+.annal-item .annal-title,
+.annal-item .annal-desc,
+.annal-item .annal-days {
+    color: #b9bfc9;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.5),   /* 下缘亮边加强 */
+        0 -1px 1px rgba(0, 0, 0, 0.85),        /* 上缘暗线加强 */
+        0 0 2px rgba(0, 0, 0, 0.4);            /* 整体压一点厚度 */
+}
+
+.annal-item .annal-date {
+    color: #a71b20;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.4),
+        0 -1px 1px rgba(0, 0, 0, 0.8);
+    margin-bottom: 2px;
+}
+
+.annal-item .annal-title { font-size: 15px; }
+.annal-item .annal-desc { font-size: 13px; }
+.annal-item .annal-days { 
+    font-size: 11px;
+    color: #a8874a;
+    margin-top: 3px;
+}
+
+.annal-item .annal-desc { line-height: 1.4; }
+.annal-item .annal-title { margin-bottom: 2px; line-height: 1.4; }
+
+.annal-item .annal-date {
+    color: #8899ff;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.25),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.annal-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.annal-item:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.annal-item:hover::before {
+    opacity: 1;
+}
+
+.annal-item.active {
+    border-color: var(--accent);
+    background-color: #484642;
+    box-shadow:
+        0 0 14px rgba(136, 153, 255, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.annal-item.active::before {
+    opacity: 1;
+}
+
+.annal-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.annal-title {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+.annal-desc {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.annal-days {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-gold);
+    letter-spacing: 1px;
+}
+
+/* 悬停时显示完整描述 */
+.annal-item:hover .annal-desc {
+    -webkit-line-clamp: unset;
+}
+
+/* ============================================
+   底部：时间轴
+   ============================================ */
+.chronicle-timeline {
+    height: 100px;
+    min-height: 100px;
+    padding: 16px 32px;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.timeline-track {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.timeline-line {
+    display: none;  /* 旧直线废弃，绳子改由 .timeline-rope（可变形SVG路径）绘制 */
+}
+
+.timeline-events {
+    position: relative;
+    z-index: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 100%;
+    scrollbar-width: none;
+}
+
+/* 按时间比例撑开的内层画布 */
+.timeline-inner {
+    position: relative;
+    height: 100%;
+    min-width: 100%;
+}
+
+/* 绳子本体：一条可被 hover 掀起波浪的 SVG 路径 */
+.timeline-rope {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.timeline-rope path {
+    fill: none;
+    stroke: #a71b20;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.timeline-events::-webkit-scrollbar {
+    display: none;
+}
+
+.timeline-event {
+    position: absolute;          /* 横向位置由 JS 按日期间距计算 */
+    top: 0;
+    height: 100%;
+    transform: translateX(-50%);
+    min-width: 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+/* 绳结：定位在轨道正中央（绳线同在 50%），事件不再整体位移，结永不离线 */
+.timeline-knot {
+    width: 56px;
+    height: 28px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    overflow: visible;
+    filter: drop-shadow(0 0 4px rgba(167, 27, 32, 0.55));
+    transition: filter 0.25s ease;
+    pointer-events: none;        /* 不遮挡下方文字，点击/悬浮都落在事件本身 */
+}
+
+.timeline-knot .knot-loop {
+    fill: none;
+    stroke: #a71b20;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+}
+
+.timeline-knot .knot-core {
+    fill: #a71b20;
+}
+
+/* 悬停：结微微放大增亮 */
+/* 悬停：结增亮（位移由 JS 随绳浪控制） */
+.timeline-event:hover .timeline-knot {
+    filter: drop-shadow(0 0 7px rgba(200, 40, 46, 0.85));
+}
+
+.timeline-knot.active .knot-loop,
+.timeline-knot.active .knot-core {
+    stroke: #c2242b;
+}
+
+.timeline-knot.gold .knot-loop {
+    stroke: #c9a94e;
+}
+
+.timeline-knot.gold .knot-core {
+    fill: #c9a94e;
+    stroke: none;
+}
+
+.timeline-knot.gold {
+    filter: drop-shadow(0 0 4px rgba(201, 169, 78, 0.55));
+}
+
+.timeline-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.timeline-label {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-event:hover .timeline-date {
+    color: var(--text-primary);
+}
+
+.timeline-event:hover .timeline-label {
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   入场动画
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chronicle-container {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 响应式 */
+@media (max-width: 1400px) {
+    .panel-annals {
+        width: 260px;
+        min-width: 260px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .chronicle-body {
+        flex-direction: column;
+    }
+    .panel-calendar {
+        width: 100%;
+        min-width: 100%;
+        max-height: 400px;
+    }
+    .panel-annals {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
+.panel-calendar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(185, 191, 201, 0.3) transparent;
+}
+.panel-calendar::-webkit-scrollbar {
+    width: 6px;
+}
+.panel-calendar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.panel-calendar::-webkit-scrollbar-thumb {
+    background: rgba(185, 191, 201, 0.3);
+    border-radius: 3px;
+}
+.panel-calendar::-webkit-scrollbar-thumb:hover {
+    background: rgba(185, 191, 201, 0.55);
+}
+
+/* ============================================
+   点击描边动画：红线绕边框一圈
+   ============================================ */
+.trace-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.trace-svg rect {
+    fill: none;
+    stroke: #a71b20;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: trace-draw 1s linear forwards;
+}
+
+@keyframes trace-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+/* ============================================
+   中间：红线织机 + 金属面板 + 打字机
+   ============================================ */
+.weaver-stage {
+    position: relative;
+    flex: 1;
+    min-height: 220px;
+}
+
+.weaver-canvas {
+    position: fixed;   /* 覆盖整个屏幕，不被面板裁剪 */
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 300;      /* 在弹窗（200）之上 */
+    pointer-events: none;
+}
+
+/* 金属面板：初始红色，银层自下而上覆盖 */
+.forge-panel {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 58%;
+    border: 2px solid var(--line-outer);
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    z-index: 1;
+}
+
+.forge-panel.visible {
+    opacity: 1;
+    transition: opacity 0.55s ease;
+}
+
+/* 镌刻文字：与日历日期数字同款凹槽刻字 */
+.forge-text {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 18px 22px;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    line-height: 2;
+    color: #2e3038;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.3),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow: hidden;
+    opacity: 0;
+    user-select: none;   /* 拖动时不选中文字 */
+    cursor: grab;
+}
+
+/* 打字光标 */
+.forge-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 1px;
+    vertical-align: -0.12em;
+    background: #a71b20;
+    box-shadow: 0 0 4px rgba(167, 27, 32, 0.6);
+    animation: caret-blink 0.9s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+    50% { opacity: 0; }
+}
+
+.forge-panel.silvered .forge-text {
+    opacity: 1;
+    transition: opacity 0.8s ease 0.6s;
+}
+
+/* 打字机 */
+.typewriter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0 6px;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: all 0.7s ease;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.typewriter.ready {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+.tw-row {
+    display: flex;
+    gap: 10px;
+}
+
+.tw-key {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #2e3038;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.28),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.55),
+        0 1px 0 rgba(255, 255, 255, 0.14);
+    transition: all 0.15s ease;
+}
+
+.tw-key:hover {
+    background-color: #75736f;
+}
+
+.tw-key.pressed,
+.tw-key:active {
+    transform: scale(0.92);
+    box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.7);
+}
+
+/* 隐藏输入框：捕获实体键盘和中文输入法 */
+.tw-capture {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    border: none;
+    background: transparent;
+}
+
+.fish-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 299;
+    pointer-events: none;
+}
+
+/* ============================================
+   纪念日新增面板
+   ============================================ */
+.annals-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.annals-add {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 0;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.28),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.55),  /* 上内阴影 = 凹进去 */
+        0 1px 0 rgba(255, 255, 255, 0.14);    /* 下缘高光 = 嵌入板材 */
+}
+
+.annals-add:hover {
+    background: rgba(0, 0, 0, 0.32);
+    color: #1d1f26;
+}
+
+.annals-add:active {
+    transform: scale(0.94);
+}
+
+/* 新增面板：默认隐藏，editing 时替换列表 */
+.annal-form {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    flex: 1;
+}
+
+.panel-annals.editing .annal-form {
+    display: flex;
+}
+
+.panel-annals.editing .annals-list {
+    display: none;
+}
+
+.annal-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 24px;
+    border: 2px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.25),
+        0 -1px 1px rgba(0, 0, 0, 0.65);
+    color-scheme: dark;  /* 日期选择器适配深色 */
+}
+
+/* 日期选择器图标：染成深红 */
+.annal-input:focus {
+    outline: none;
+    border-color: var(--line-outer);  /* 浅银框 */
+    border-radius: 0;               /* 圆角 */
+}
+
+.annal-textarea {
+    min-height: 90px;
+    resize: vertical;
+    font-family: var(--font-serif);
+    line-height: 1.8;
+}
+
+/* Store 按钮：与编辑器按钮同款 */
+.annal-store {
+    align-self: center;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.25),
+        0 -1px 1px rgba(0, 0, 0, 0.65);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.55),
+        0 1px 0 rgba(255, 255, 255, 0.14);
+    transition: all 0.15s ease;
+}
+
+.annal-store:hover {
+    background-color: #75736f;
+}
+
+.annal-store:active {
+    transform: scale(0.96);
+    box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================
+   红线手记：金属板风格（与红线编年一致）
+   ============================================ */
+.chronicle-journal {
+    position: absolute;
+    top: 88px;          /* 让开顶部标题栏 */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+    z-index: 4;
+    background: transparent; 
+}
+
+.chronicle-journal.active {
+    display: flex;
+    animation: fadeInUp 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chronicle-container.journal-mode .chronicle-body,
+.chronicle-container.journal-mode .chronicle-timeline {
+    display: none;
+}
+
+.journal-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+/* ---- 主列 ---- */
+.journal-main {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 28px 40px 40px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(185, 191, 201, 0.35) transparent;
+}
+.journal-main::-webkit-scrollbar { width: 5px; }
+.journal-main::-webkit-scrollbar-track { background: transparent; }
+.journal-main::-webkit-scrollbar-thumb {
+    background: rgba(185, 191, 201, 0.35);
+    border-radius: 3px;
+}
+.journal-main::-webkit-scrollbar-thumb:hover { background: rgba(185, 191, 201, 0.6); }
+
+/* ---- New 按钮：金属小块，钉在左上角 ---- */
+.journal-new {
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin: 24px 0 20px 48px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 0;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 1px 1px rgba(255,255,255,.28), 0 -1px 1px rgba(0,0,0,.65);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.14);
+    transition: all 0.2s ease;
+}
+
+.journal-new:hover,
+.journal-new[aria-expanded="true"] {
+    background-color: #75736f;
+}
+
+.journal-new:focus-visible,
+.journal-input:focus-visible,
+.journal-text:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 3px;
+}
+
+/* ---- 新增面板：金属板 ---- */
+.journal-new-panel {
+    display: none;
+    margin-bottom: 24px;
+    padding: 20px 22px;
+    border: 2px solid var(--line-outer);
+    border-radius: 0;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.journal-new-panel.open { display: block; }
+
+.journal-field-label {
+    display: block;
+    margin: 12px 0 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #a71b20;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.3),
+        0 -1px 1px rgba(0, 0, 0, 0.6);
+}
+.journal-field-label:first-child { margin-top: 0; }
+
+.journal-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.55),
+        0 1px 0 rgba(255, 255, 255, 0.12);
+    color: #ece7db;              /* 亮色字，深底凹槽上清晰可读 */
+    font-family: var(--font-serif);
+    font-size: 14px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+    resize: vertical;
+}
+.journal-input:focus { outline: none; background: rgba(0, 0, 0, 0.5); }
+.journal-input::placeholder { color: rgba(236, 231, 219, 0.35); }
+
+.journal-new-text { min-height: 88px; margin-top: 14px; }
+
+.journal-form-message {
+    min-height: 18px;
+    margin-top: 10px;
+    font-family: var(--font-serif);
+    font-size: 12px;
+    color: #d4737a;
+}
+
+.journal-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.journal-form-actions .btn-ghost,
+.journal-form-actions .btn-primary {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* ---- 手记列表 ---- */
+.journal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.journal-empty {
+    padding: 48px 24px;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+}
+
+.journal-entry {
+    padding: 20px 24px 24px;
+    border: 2px solid var(--line-outer);
+    border-radius: 0;
+    background-color: #63615e;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    transition: border-color 0.25s ease;
+}
+
+.journal-entry.dirty { border-color: rgba(167, 27, 32, 0.6); }
+.journal-entry.invalid { animation: shake 0.4s ease; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+
+.journal-entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-inner);
+}
+
+.journal-date {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: #a71b20;                 /* 与全局统一的深红 */
+    letter-spacing: 2px;
+    text-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.45),   /* 下缘亮边：镌刻高光 */
+        0 -1px 1px rgba(0, 0, 0, 0.7);         /* 上缘暗线：刻入板材 */
+}
+
+/* 正文：亮色字 + 深凹槽底，清晰优先 */
+.journal-text {
+    width: 100%;
+    min-height: 72px;
+    padding: 12px 14px;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.55),
+        0 1px 0 rgba(255, 255, 255, 0.12);
+    color: #ece7db;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    line-height: 1.9;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+    resize: vertical;
+}
+.journal-text:focus { outline: none; background: rgba(0, 0, 0, 0.5); }
+
+.journal-entry-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.journal-store,
+.journal-delete {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 0;
+    background-color: #75736f;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
+    color: #a71b20;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 1px rgba(255,255,255,.28), 0 -1px 1px rgba(0,0,0,.65);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.14);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.journal-store:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.journal-delete.confirming {
+    background-color: #a71b20;
+    color: #f5f0e8;
+    text-shadow: none;
+}
+
+/* ---- 索引侧边栏 ---- */
+.journal-index {
+    width: 140px;
+    min-width: 140px;
+    padding: 28px 16px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(185, 191, 201, 0.35) transparent;
+    border-left: 1px solid var(--line-inner);
+}
+
+.journal-index::-webkit-scrollbar { width: 5px; }
+.journal-index::-webkit-scrollbar-track { background: transparent; }
+.journal-index::-webkit-scrollbar-thumb { background: rgba(185, 191, 201, 0.35); border-radius: 3px; }
+
+.journal-index-item {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #c53a42;   /* 数字统一显示红色（深底上略提亮，保持可读） */
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.journal-index-item:hover,
+.journal-index-item.active {
+    background: transparent;
+    color: var(--text-primary);   /* 悬停/当前：白色 */
+}
+
+/* ============================================
+   手记：响应式
+   ============================================ */
+@media (max-width: 1200px) {
+    .journal-content {
+        flex-direction: column;
+    }
+    .journal-index {
+        width: 100%;
+        min-width: 100%;
+        max-height: 160px;
+        border-left: none;
+        border-top: 1px solid var(--line-inner);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 16px;
+    }
+    .journal-index-item {
+        width: auto;
+        flex: 0 0 auto;
+    }
+    .journal-main { padding: 20px 30px 72px; }
+}
+
+@media (max-width: 680px) {
+    .chronicle-header { padding: 18px 20px; }
+    .header-title { font-size: 18px; letter-spacing: 5px; }
+    .header-actions { gap: 8px; }
+    .chronicle-close { width: 36px; height: 36px; }
+    .journal-main { padding: 16px 18px 64px; }
+    .journal-entry { padding: 18px 16px 20px 22px; }
+    .journal-new-panel { padding: 20px 18px; }
+    .journal-new { margin-left: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chronicle-journal,
+    .journal-entry,
+    .journal-new,
+    .journal-index-item,
+    .chronicle-close {
+        animation: none;
+        transition-duration: 0.01ms;
+    }
+}
+
+/* Responsive geometry: preserve the original materials and animations. */
+.calendar-modal {
+    width: 100%; height: var(--visible-height, 100dvh);
+    top: var(--visible-top, 0px);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.chronicle-container { width: min(1600px, 96%); max-width: none; height: 92%; }
+.chronicle-body {
+    flex-direction: row; overflow: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: rgba(185, 191, 201, .35) transparent;
+}
+.chronicle-body::-webkit-scrollbar { width: 6px; }
+.chronicle-body::-webkit-scrollbar-thumb { background: rgba(185, 191, 201, .35); border-radius: 3px; }
+.panel-calendar {
+    width: clamp(320px, 32vw, 520px); min-width: 0; max-height: none;
+    flex: 0 0 clamp(320px, 32vw, 520px); overflow-y: auto;
+    padding: clamp(16px, 2vw, 28px) clamp(12px, 2vw, 32px);
+}
+.panel-editor { min-height: 380px; overflow-y: auto; padding: 28px clamp(12px, 2vw, 32px); }
+.panel-annals { width: clamp(200px, 19vw, 300px); min-width: 0; flex: 0 0 clamp(200px, 19vw, 300px); }
+.panel-calendar, .panel-editor, .panel-annals { overscroll-behavior: contain; }
+.weaver-stage { flex: 1 0 220px; }
+.weaver-canvas, .fish-canvas { width: 100%; height: var(--scene-height, 100dvh); }
+.typewriter { --key-gap: clamp(4px, .7vw, 10px); }
+.tw-row { width: 100%; max-width: 518px; justify-content: center; gap: var(--key-gap); }
+.tw-key {
+    width: min(38px, calc((100% - 10 * var(--key-gap)) / 11));
+    height: auto; aspect-ratio: 1; flex-shrink: 0;
+}
+.tw-capture { font-size: 16px; }
+.timeline-track, .timeline-events { width: 100%; min-width: 0; }
+.timeline-events { touch-action: pan-x; overscroll-behavior-x: contain; }
+.chronicle-journal { position: relative; top: auto; flex: 1; min-height: 0; }
+.journal-content, .journal-index { min-width: 0; }
+.journal-input, .journal-text { overflow-wrap: anywhere; }
+.journal-entry-head { flex-wrap: wrap; }
+.journal-entry-actions { flex-shrink: 0; }
+.annal-item { touch-action: manipulation; }
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .chronicle-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; }
+    .panel-calendar, .panel-editor { width: auto; min-width: 0; flex: none; }
+    .panel-calendar { grid-column: 1; height: max-content; overflow: visible; }
+    .panel-editor { grid-column: 2; min-height: 440px; }
+    .panel-editor.collapsed { display: none; }
+    .panel-annals { grid-column: 1 / -1; width: auto; margin-left: 0; flex: none; min-height: 240px; overflow: visible; }
+    .annals-list { flex: none; max-height: 300px; }
+}
+@media (max-width: 1199px) {
+    .journal-content { flex-direction: column; }
+    .journal-index {
+        flex: 0 0 auto; width: 100%; min-width: 0; max-height: none;
+        border-left: none; border-top: 1px solid var(--line-inner);
+        display: flex; flex-wrap: nowrap; gap: 6px; padding: 12px 16px;
+        overflow-x: auto; overflow-y: hidden; touch-action: pan-x;
+    }
+    .journal-index-item { width: auto; flex: 0 0 auto; margin-bottom: 0; }
+    .annal-input, .journal-input, .journal-text, .tw-capture { font-size: 16px; }
+}
+@media (max-width: 767px) {
+    .chronicle-container { width: 100%; height: 100%; }
+    .chronicle-header { padding: 12px 16px; gap: 8px; touch-action: pan-y; }
+    .header-left { gap: 8px; min-width: 0; }
+    .header-title { font-size: 18px; letter-spacing: 3px; white-space: nowrap; }
+    .header-actions { gap: 4px; flex-shrink: 0; }
+    .chronicle-close { width: 40px; height: 40px; }
+    .chronicle-body { display: flex; flex-direction: column; overflow: hidden; touch-action: pan-y; }
+    .panel-calendar, .panel-editor, .panel-annals {
+        display: none; width: 100%; min-width: 0; max-height: none;
+        flex: 1; min-height: 0; padding: 16px; overflow-y: auto;
+        margin-left: 0; touch-action: pan-y;
+    }
+    .chronicle-container[data-mobile-panel="calendar"] .panel-calendar,
+    .chronicle-container[data-mobile-panel="editor"] .panel-editor:not(.collapsed),
+    .chronicle-container[data-mobile-panel="annals"] .panel-annals { display: flex; }
+    .panel-editor.collapsed { display: none; }
+    .panel-calendar { align-items: center; }
+    .calendar-nav-bar, .weekdays, .days-grid { width: 100%; max-width: 456px; flex-shrink: 0; }
+    .day-cell { padding: 4px; }
+    .weekday { font-size: 14px; }
+    .weaver-stage { flex: 1 0 200px; }
+    .forge-text { overflow-y: auto; touch-action: pan-y; padding: 12px; }
+    .editor-actions { flex-shrink: 0; }
+    .chronicle-timeline { height: 88px; min-height: 88px; padding: 12px 16px; }
+    .journal-new { margin: 16px 0 12px 18px; }
+    .journal-main { padding: 16px 18px 24px; }
+    .journal-entry { padding: 18px 16px 20px 22px; }
+    .journal-new-panel { padding: 20px 18px; }
+}

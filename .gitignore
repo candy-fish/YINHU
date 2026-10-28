@@ -1,0 +1,61 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor and IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and local environment files
+*.log
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+hosting/.git/
+hosting/public/
+hosting/.sites-runtime/
+hosting/.wrangler/
+hosting/.vinext/
+hosting/.next/
+hosting/outputs/
+hosting/work/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.dev.vars
+
+
+# Browser profiles, session exports, local database state and private deployment files
+.browser/
+browser-data/
+browser-profile/
+playwright/.auth/
+.auth/
+storage-state*.json
+storageState*.json
+cookies*.json
+cookies*.txt
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.har
+.dev.vars.*
+supabase/.temp/
+supabase/.branches/
+supabase/.env*
+
+models/tree.glb

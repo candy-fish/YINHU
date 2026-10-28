@@ -1,0 +1,157 @@
+/* ===== 基础 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a0f;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ===== Matrix 数字雨背景 ===== */
+#matrixCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* ===== 雨痕覆盖层 ===== */
+#rainCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.6;
+}
+
+/* ===== 柔光金属文字 ===== */
+.metal-text {
+    font-family: 'Space Grotesk', 'Noto Serif SC', sans-serif;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    
+    position: absolute;
+    top: 38.2%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    z-index: 10;
+    
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,255,255,0.15) 20%,
+            rgba(255,255,255,0.35) 40%,
+            rgba(255,255,255,0.15) 60%,
+            transparent 100%
+        ),
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.5) 0%,
+            rgba(200,205,215,0.8) 15%,
+            rgba(160,165,180,0.9) 35%,
+            rgba(220,225,235,0.7) 50%,
+            rgba(140,145,160,0.9) 65%,
+            rgba(190,195,210,0.8) 85%,
+            rgba(255,255,255,0.5) 100%
+        ),
+        linear-gradient(
+            135deg,
+            #c5c9d4 0%,
+            #a8adb8 25%,
+            #d0d4e0 50%,
+            #989da8 75%,
+            #b8bcc8 100%
+        );
+    
+    background-blend-mode: overlay, soft-light, normal;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    
+    -webkit-text-stroke: 1px rgba(180,190,210,0.2);
+    filter: drop-shadow(0 0 40px rgba(180,190,210,0.08));
+}
+
+/* ===== "回到" 单独控制 ===== */
+.verb {
+    display: inline-block;
+    background: inherit;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* "来到"闪烁：保留渐变 */
+.verb.glitching {
+    animation: verb-flicker 0.15s ease-in-out;
+    opacity: 0.6;
+}
+
+@keyframes verb-flicker {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.1; }
+    100% { opacity: 0.6; }
+}
+
+/* ===== 动态高光扫描 ===== */
+.metal-text::after {
+    content: '欢迎来到银壶';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    background: linear-gradient(
+        100deg,
+        transparent 0%,
+        transparent 30%,
+        rgba(255,255,255,0.25) 45%,
+        rgba(255,255,255,0.4) 50%,
+        rgba(255,255,255,0.25) 55%,
+        transparent 70%,
+        transparent 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 250% 100%;
+    animation: soft-shine 8s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: soft-light;
+}
+
+@keyframes soft-shine {
+    0% { background-position: 250% 0; }
+    100% { background-position: -250% 0; }
+}
+
+/* ===== 暗角 ===== */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 50%,
+        rgba(0,0,0,0.7) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+}

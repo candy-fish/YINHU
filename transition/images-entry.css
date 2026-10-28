@@ -1,0 +1,29 @@
+#imagesEntry {
+    position: fixed;
+    z-index: 100;
+    display: block;
+    color: #c0c0c0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .3s ease;
+}
+
+#imagesEntry canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#imagesEntry:focus-visible {
+    outline: none;
+}
+#imagesEntry:focus-visible canvas { filter: brightness(1.25); }
+
+@media (hover: hover) {
+    #imagesEntry:hover { transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #imagesEntry { transition: none; }
+    #imagesEntry:hover { transform: none; }
+}

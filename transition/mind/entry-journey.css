@@ -1,0 +1,22 @@
+.mind-entry-portal{position:fixed;z-index:10000;left:var(--portal-x);top:var(--portal-y);width:var(--portal-size);height:var(--portal-size);transform:translate(-50%,-50%);pointer-events:none}
+.mind-entry-portal::before{content:"";position:absolute;left:2.5%;top:5%;width:95%;height:95%;border-radius:50%;background:#010201;box-shadow:0 0 0 .65px #89937e55,0 0 36px #8a967714;opacity:0;animation:entry-darken var(--entry-blacken-duration) ease-in var(--entry-blacken-delay) both}
+.mind-entry-wire{position:absolute;inset:0;width:100%;height:100%;overflow:visible;animation:entry-wire-vanish var(--entry-wire-fade-duration) ease-out var(--entry-wire-fade-delay) both}
+.entry-wire-edge{stroke:url(#entry-silver);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;filter:drop-shadow(0 0 1.8px #dce9f570);animation:entry-wire-trace var(--entry-wire-duration) linear both}
+.entry-prism-rim{stroke:url(#entry-prism);stroke-width:6;filter:blur(3px);animation:entry-rainbow var(--entry-rainbow-duration) ease-out var(--entry-rainbow-delay) both}
+.mind-entry-refraction{position:absolute;inset:-230%;border-radius:50%;pointer-events:none;background:conic-gradient(from -58deg,transparent 0deg 16deg,#92beff38 20deg,#b19bed55 24deg,#e99cba55 27deg,#efd3a94a 30deg,#a7dfc348 34deg,#96cbea30 38deg,transparent 44deg 195deg,#9caefb2e 201deg,#d2a5e23b 206deg,#e8c4ab36 211deg,#a6d5c230 216deg,transparent 224deg 360deg);mask-image:radial-gradient(circle,transparent 0 12%,#000 23%,#0009 43%,transparent 70%);filter:blur(6px);animation:entry-rainbow var(--entry-rainbow-duration) ease-out var(--entry-rainbow-delay) both}
+@keyframes entry-wire-trace{to{stroke-dashoffset:0}}
+@keyframes entry-rainbow{0%{opacity:0;transform:scale(.86)}35%,68%{opacity:.7}100%{opacity:0;transform:scale(1.12)}}
+@keyframes entry-wire-vanish{from{opacity:1}to{opacity:0;filter:blur(1px)}}
+.mind-entry-launch #canvas-container canvas,.mind-entry-launch #discoRope{animation:entry-disappear var(--entry-blacken-duration) ease-in var(--entry-blacken-delay) both}
+@keyframes entry-disappear{from{opacity:1}to{opacity:0}}
+.mind-entry-launch::after{content:"";position:fixed;inset:0;z-index:9999;background:#030503;pointer-events:none;animation:entry-darken var(--entry-scene-fade-duration) ease-in var(--entry-scene-fade-delay) both}
+@keyframes entry-darken{from{opacity:0}to{opacity:1}}
+html.mind-journey-pending{background:#030503}
+.mind-journey-pending .mind-page{visibility:hidden}
+.mind-journey-pending body{background:#030503}
+.mind-journey{position:fixed;inset:0;z-index:10000;overflow:hidden;background:#030503;isolation:isolate;opacity:1;touch-action:none}
+.mind-journey canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.mind-journey::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 24%,#02040355 78%,#0009);z-index:2}
+.journey-skip{position:absolute;right:max(28px,env(safe-area-inset-right));top:max(25px,env(safe-area-inset-top));z-index:3;background:none;border:0;border-bottom:1px solid #c1ba8a38;color:#b6b89a99;padding:6px 0;cursor:pointer;font:10px "Noto Serif SC",serif;letter-spacing:.22em;transition:color .2s}
+.journey-skip:hover,.journey-skip:focus-visible{color:#f7e9b5;outline-offset:6px}
+.journey-status{position:absolute;bottom:24px;left:28px;z-index:3;color:#c4bf9c88;font:10px "Noto Serif SC",serif;letter-spacing:.22em}

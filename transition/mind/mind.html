@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050706">
+    <title>Mind · 思维阁</title>
+    <link rel="stylesheet" href="/vendor/fonts/fonts.css">
+    <link rel="stylesheet" href="mind.css?v=cabinet">
+    <link rel="stylesheet" href="entry-journey.css">
+    <script>
+        try {
+            const journey = JSON.parse(sessionStorage.getItem('blackdoor.mind.journey.v2'));
+            if (journey && Date.now() - journey.created >= 0 && Date.now() - journey.created < 30000) {
+                document.documentElement.classList.add('mind-journey-pending');
+            }
+        } catch {}
+    </script>
+    <link rel="stylesheet" href="/assets/layout.css">
+    <script src="/assets/asset-manifest.js"></script>
+    <!-- mind-model-preload -->
+    <link rel="modulepreload" href="mind.js">
+    <script type="module" src="/assets/bootstrap.js"></script>
+</head>
+<body>
+    <main class="mind-page">
+        <div id="mindScene" aria-label="拖动旋转思维树">
+            <button id="graceEntrance" class="grace-entrance" type="button" aria-label="进入思维阁" hidden></button>
+        </div>
+        <p id="sceneStatus" class="scene-status" role="status">正在唤醒思维树…</p>
+        <div id="pointPicker" class="point-picker" hidden><p id="pickerMessage" role="status"></p><button id="cancelPick" type="button">取消取点</button></div>
+        <output id="leafTooltip" class="leaf-tooltip" hidden></output>
+        <a class="mind-back" href="../transition.html" aria-label="Back to transition page">BACK</a>
+        <div id="mindCursor" class="mind-cursor" aria-hidden="true">
+            <output id="mindCoordinates" class="mind-coordinates"></output>
+        </div>
+        <section id="thoughtCabinet" class="thought-cabinet" aria-labelledby="cabinetTitle" hidden>
+            <header class="cabinet-header"><div><h1 id="cabinetTitle" tabindex="-1">思维阁</h1></div><button id="returnToTree" class="text-button" type="button" aria-label="返回树"><span aria-hidden="true">↗</span></button></header>
+            <div class="cabinet-columns">
+                <section class="cabinet-create" aria-labelledby="createTitle">
+                    <div class="cabinet-create-content"><h2 id="createTitle" lang="en">INSCRIBE</h2>
+                    <form id="thoughtForm">
+                        <fieldset id="thoughtFields">
+                            <label for="thoughtName">思维名称</label><input id="thoughtName" name="name" required autocomplete="off">
+                            <div class="coordinate-heading"><label id="positionLabel">树上坐标</label><button id="pickPoint" class="text-button" type="button">从树上取点 ↗</button></div>
+                            <div class="coordinate-inputs" role="group" aria-labelledby="positionLabel"><label>X<input id="thoughtX" name="x" type="number" step="any" readonly></label><label>Y<input id="thoughtY" name="y" type="number" step="any" readonly></label><label>Z<input id="thoughtZ" name="z" type="number" step="any" readonly></label></div>
+                            <label for="thoughtDescription">思维描述</label><textarea id="thoughtDescription" name="description" rows="5"></textarea>
+                            <label for="thoughtImage">思维图片</label><div class="image-upload"><div id="uploadPreview" class="upload-preview"><span aria-hidden="true">✧</span></div><div><input id="thoughtImage" name="image" type="file" accept="image/png,image/jpeg,image/webp"><button id="removeImage" class="text-button" type="button" hidden>移除图片</button></div></div>
+                        </fieldset>
+                    </form></div>
+                    <button id="saveThought" class="cabinet-button" type="submit" form="thoughtForm" lang="en"><span class="button-label">SAVE</span><span class="button-icon" aria-hidden="true">＋</span></button>
+                    <p id="cabinetStatus" class="cabinet-status" role="status" aria-live="polite"></p>
+                </section>
+                <section class="cabinet-collection" aria-label="思维列表">
+                    <div class="collection-heading"><p id="thoughtCount" aria-label="0 条思维，0 条已装备">00 | 00</p></div>
+                    <div id="thoughtConstellation" class="thought-constellation">
+                        <svg id="thoughtLinks" class="thought-links" aria-hidden="true" focusable="false"></svg>
+                        <div id="thoughtCards" class="thought-cards"></div>
+                        <div id="collectionEmpty" class="collection-empty" aria-hidden="true"></div>
+                        <figure class="mind-portrait"><img id="mindPortrait" src="images/mind-portrait-soft.png" width="1254" height="1254" alt="鹿首人形与胸腔骨骼" decoding="async" draggable="false"></figure>
+                    </div>
+                </section>
+                <section class="cabinet-detail" aria-label="思维详情"><div class="cabinet-detail-content"><div id="detailImage" class="detail-image"></div><p id="detailState" class="detail-state">尚未选择</p><h2 id="detailTitle"></h2><p id="detailCoordinates" class="detail-coordinates"></p><div class="detail-rule" aria-hidden="true"></div><p id="detailDescription" class="detail-description"></p></div><button id="equipThought" class="cabinet-button" type="button" lang="en" disabled><span class="button-label">EQUIP</span><span class="button-icon" aria-hidden="true">◇</span></button></section>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="mind.js"></script>
+</body>
+</html>

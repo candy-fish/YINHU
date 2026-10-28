@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070807">
+  <meta name="description" content="映相，一条收藏照片与时光的光路。">
+  <title>映相 · 银壶</title>
+  <link rel="stylesheet" href="images-arrival.css">
+  <script src="images-arrival.js"></script>
+  <link rel="stylesheet" href="/vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="images.css">
+  <script type="module" src="images.js"></script>
+</head>
+<body>
+  <div class="screen-glow" aria-hidden="true"><div class="screen-stars"></div></div>
+  <canvas class="night-stars" id="nightStars" aria-hidden="true"></canvas>
+  <div class="aurora-sky" aria-hidden="true"><canvas id="aurora"></canvas></div>
+  <svg class="companion-filters" aria-hidden="true" focusable="false"><defs><filter id="companion-lime" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope=".77255"/><feFuncG type="linear" slope=".85098"/><feFuncB type="linear" slope=".31765"/></feComponentTransfer></filter></defs></svg>
+  <div class="ambient" aria-hidden="true"></div>
+  <main>
+    <div class="page-heading">
+      <h1 lang="zh-CN">映相</h1>
+    </div>
+
+    <section class="scene" id="scene" aria-label="Photo timeline. Move right for newer memories. Hover beside the light path, use arrow keys, or swipe to explore." tabindex="0">
+      <div class="scene-world" id="sceneWorld">
+        <div class="portal-aura" aria-hidden="true"></div>
+        <div class="portal" aria-label="A doorway to the cosmos">
+          <canvas id="cosmos" aria-hidden="true"></canvas>
+          <div class="portal-glass" aria-hidden="true"></div>
+          <svg class="portal-frame" viewBox="0 0 135 475" preserveAspectRatio="none" aria-hidden="true"><path d="M1 0V475" fill="none" stroke="#C5D951" stroke-width="2"/><path d="M1 .7 134.5 31.9V475" fill="none" stroke="#C5D951" stroke-opacity=".7" stroke-width="1"/></svg>
+        </div>
+        <div class="portal-volume-clip" aria-hidden="true"><div class="portal-volume"><div class="nebula-plane nebula-heart"></div><div class="nebula-plane nebula-soul"></div><div class="nebula-near-stars"></div></div></div>
+
+        <div class="windows" id="windows" aria-label="Photo windows"></div>
+        <div id="drawPreview" class="draw-preview" hidden><span id="drawDimensions" class="draw-dimensions"></span></div>
+        <div class="companions" id="companions" aria-hidden="true">
+          <div class="deer-shadow"></div>
+          <div class="deer"><div class="deer-facing"></div></div>
+          <div class="fish"><div class="fish-facing"></div></div>
+        </div>
+
+        <div class="light-road" id="lightRoad" aria-hidden="true"><div class="road-haze"></div><div class="road-core"></div></div>
+        <div class="timeline-dates" id="timelineDates"></div>
+      </div>
+      <div class="timeline-hover" id="timelineHover" aria-hidden="true"></div>
+      <div id="drawSurface" class="draw-surface" hidden tabindex="-1" aria-label="Drag above the light path to draw a new window"></div>
+    </section>
+
+
+    <nav class="navigation-row" aria-label="Timeline and navigation">
+      <div class="travel-controls">
+        <input class="progress-track" id="progressTrack" type="range" min="0" max="100" step="0.1" value="0" aria-label="Timeline position" aria-valuetext="0% · Newer to the right">
+        <button id="drawWindow" class="draw-window-button" type="button" aria-label="Draw a new window" aria-pressed="false" title="Draw a new window"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="3" y="3" width="30" height="30"/><path d="M3 18h30M18 3v30"/></svg></button>
+        <a class="transition-return" href="../transition.html" aria-label="Back to Transition" title="Back to Transition"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="3" y="3" width="30" height="30"/><rect x="12" y="12" width="12" height="12"/></svg></a>
+      </div>
+    </nav>
+  </main>
+
+  <aside id="artworkInfo" class="holo-panel artwork-info" role="tooltip" hidden>
+    <h2 id="artworkTitle"></h2>
+    <dl><div><dt>Time</dt><dd id="artworkTime"></dd></div><div><dt>Material</dt><dd id="artworkMaterial"></dd></div><div><dt>Size</dt><dd id="artworkSize"></dd></div></dl>
+  </aside>
+
+  <dialog id="editor" class="modal editor-modal" aria-label="Window details">
+    <div class="screen-stars" aria-hidden="true"></div>
+    <form id="windowForm">
+      <button class="close-modal" id="closeEditor" type="button" aria-label="Close window editor">×</button>
+      <div class="editor-art-stage">
+        <label class="cover-picker painting-frame" id="coverPicker"><input id="coverFile" type="file" aria-label="Add or replace cover" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"><img id="coverPreview" alt="Selected window cover" hidden></label>
+        <div class="frame-tools">
+          <button id="redrawWindow" class="frame-tool" type="button" aria-label="Redraw window"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5M8 16l2.5-.5 7-7-2-2-7 7z"/></svg></button>
+          <button id="clearCover" class="frame-tool" type="button" aria-label="Remove cover" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+      </div>
+      <div class="editor-fields holo-panel">
+        <label class="holo-field"><span class="holo-field-label">Title</span><input id="windowTitle" name="title" type="text" maxlength="40" aria-label="Title" autocomplete="off" required></label>
+        <label class="holo-field"><span class="holo-field-label">Time</span><input id="windowDate" name="date" type="text" maxlength="45" aria-label="Time" autocomplete="off" spellcheck="false" required></label>
+        <label class="holo-field material-field"><span class="holo-field-label">Material</span><textarea id="windowMaterial" name="material" rows="3" maxlength="600" aria-label="Material"></textarea></label>
+        <p class="form-error" id="formError" role="alert"></p>
+        <button class="submit-artwork" id="saveWindow" type="submit" aria-label="Save to collection" title="Save to collection"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 5h14a1 1 0 0 1 1 1v21l-8-5-8 5V6a1 1 0 0 1 1-1Z"/></svg></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="windowDetail" class="modal detail-modal" aria-labelledby="detailTitle">
+    <button class="close-modal" id="closeDetail" type="button" aria-label="Close window details">×</button>
+    <div class="detail-art" id="detailArt"></div>
+    <div class="detail-content"><div class="modal-eyebrow" id="detailDate"></div><h2 id="detailTitle"></h2><p id="detailDescription"></p><div class="detail-actions" id="detailActions"></div><div class="delete-confirm" id="deleteConfirm" hidden><p>Remove this window and its cover?</p><button class="text-button" id="cancelDelete" type="button">Cancel</button><button class="danger-button" id="confirmDelete" type="button">Remove</button></div><p id="detailError" class="form-error" role="alert"></p></div>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+</body>
+</html>
