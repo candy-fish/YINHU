@@ -336,16 +336,16 @@ export function createCompanions(root, reducedMotion) {
   const state = createMotionState();
   let reset = true;
   let holograms = null;
-  import('./assets/companions-3d.bundle.js')
+  const ready = import('./assets/companions-3d.bundle.js')
     .then(module => module.createHologramCompanions(root))
-    .then(renderer => { holograms = renderer; })
-    .catch(error => { root.dataset.renderer = 'svg'; console.warn('Companion 3D fallback:', error); });
+    .then(renderer => { holograms = renderer; return renderer; });
   function pivot(node, angle, fallback) {
     if (!node) return;
     const origin = node.getAttribute('data-pivot') || fallback;
     node.setAttribute('transform', `rotate(${angle.toFixed(3)} ${origin})`);
   }
   return {
+    ready,
     reset() { reset = true; state.followSpeed = state.speed = state.walk = state.run = state.fastTime = state.fastSamples = state.excitement = 0; state.runRequested = state.landing = false; state.feet = deerRig.map(leg => [...leg.foot]); state.settling = null; state.stepped = false; state.silence = 1; },
     update(view) {
       const pose = advanceMotion(state, { ...view, reduced: reducedMotion.matches, reset });
