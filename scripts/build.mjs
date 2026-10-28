@@ -167,4 +167,11 @@ await build({
 
 console.log(`BlackDoor ${deployBuild ? 'deployment' : 'local'} build written to ${out}`);
 
-await build({ entryPoints: [path.join(root, 'transition/images/images.js')], outfile: path.join(out, 'transition/images/images.js'), bundle: true, format: 'esm', target: 'es2022', minify: deployBuild });
+await build({
+  entryPoints: [path.join(root, 'transition/images/images.js')],
+  outfile: path.join(out, 'transition/images/images.js'),
+  bundle: true, format: 'esm', target: 'es2022', minify: deployBuild,
+  // Keep import.meta.url beside the GLBs and textures in assets/. Inlining this
+  // renderer into images.js would resolve its relative URLs one directory up.
+  external: ['./assets/companions-3d.bundle.js']
+});
