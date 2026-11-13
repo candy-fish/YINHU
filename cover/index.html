@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="cover-locked">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>银壶</title>
+    <link rel="stylesheet" href="/cover/login.css">
+    <script src="/cover/login.js" defer></script>
     <link rel="stylesheet" href="/vendor/fonts/fonts.css">
     <link rel="stylesheet" href="cover.css">
     <link rel="stylesheet" href="/assets/layout.css">
     <script src="/assets/asset-manifest.js"></script>
     <script type="module" src="/assets/bootstrap.js"></script>
 </head>
-<body class="cover-page" onclick="location.href='../transition/transition.html'">
+<body class="cover-page">
+    <form class="login" aria-label="进入银壶" novalidate>
+        <input class="login-input" type="password" inputmode="numeric" pattern="[0-9]*"
+            aria-label="输入数字密码" autocomplete="off" spellcheck="false" enterkeyhint="go" autofocus>
+    </form>
     <!-- Matrix 数字雨背景 -->
     <canvas id="matrixCanvas"></canvas>
     
@@ -23,6 +29,11 @@
     </h1>
 
     <script>
+        // 登录成功后才启动封面，黑屏阶段不运行背景动画。
+        window.addEventListener('blackdoor:unlocked', () => {
+        document.body.addEventListener('click', () => {
+            location.href = '../transition/transition.html';
+        });
         // ===== Matrix 数字雨 =====
         const matrixCanvas = document.getElementById('matrixCanvas');
         const matrixCtx = matrixCanvas.getContext('2d');
@@ -205,6 +216,7 @@
         document.fonts.ready.then(() => {
             verbGlitchLoop();
         });
+        }, { once: true });
     </script>
 </body>
 </html>
