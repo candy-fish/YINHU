@@ -55,7 +55,7 @@
                 const outer = point(Math.min(radius, distance + halfLength), turn);
                 const left = point(distance, turn - spread);
                 const right = point(distance, turn + spread);
-                // Separate, solid triangles keep the mirrored facets crisp and airy.
+                // Keep the inset diamond whole, without a seam across its center.
                 const middle = point(distance, turn);
                 const inset = vertices => vertices.map(vertex => [
                     middle[0] + (vertex[0] - middle[0]) * .64,
@@ -63,7 +63,7 @@
                 ]);
                 const fills = row % 2
                     ? [inset([inner, left, middle]), inset([outer, right, middle])]
-                    : [inset([inner, left, right]), inset([outer, right, left])];
+                    : [inset([inner, left, outer, right])];
                 shards.push({ row, sector, outline: transform([inner, left, outer, right]),
                     fills: fills.map(transform) });
             }
@@ -79,6 +79,30 @@
         for (const shard of geometry(time)) {
             polygon(shard.outline);
             shard.fills.forEach(vertices => polygon(vertices, true));
+        }
+        // Small satellite circles occupy the gaps between the outer diamonds.
+        // They remain separate ornaments, leaving the 48-fragment stair sequence intact.
+        const breath = (1 - Math.cos(time * Math.PI / 4)) / 2;
+        const scale = .88 + breath * .12;
+        for (let sector = 0; sector < 12; sector++) {
+            const turn = sector * angle + time * .025
+                + Math.sin(time * .3) * .065;
+            const distance = (133 + Math.sin(time * .55 - 2.1) * 4.4) * scale;
+            const [dx, dy] = point(distance, turn);
+            const x = center + dx, y = center + dy;
+            const circleRadius = [6, 7.5, 6.75][sector % 3] * scale;
+            context.beginPath();
+            context.arc(x, y, circleRadius, 0, Math.PI * 2);
+            context.stroke();
+            if (sector % 2 === 0) {
+                context.beginPath();
+                context.arc(x, y, 1.5 * scale, 0, Math.PI * 2);
+                context.fill();
+            } else {
+                context.beginPath();
+                context.arc(x, y, circleRadius * .52, 0, Math.PI * 2);
+                context.stroke();
+            }
         }
     }
 
