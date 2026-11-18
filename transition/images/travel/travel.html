@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#030507">
+  <title>旅行地图 · 映相</title>
+  <link rel="stylesheet" href="travel.css">
+  <script type="module" src="../assets/travel-globe.bundle.js"></script>
+</head>
+<body>
+  <main aria-label="旅行地图">
+    <canvas id="earth" tabindex="0" role="img" aria-label="全球夜间灯光地球，可左右拖动或使用左右方向键旋转" aria-busy="true"></canvas>
+    <p id="loadError" role="alert" hidden>地球加载失败，请刷新重试。</p>
+  </main>
+</body>
+</html>

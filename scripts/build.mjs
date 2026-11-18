@@ -175,3 +175,9 @@ await build({
   // renderer into images.js would resolve its relative URLs one directory up.
   external: ['./assets/companions-3d.bundle.js']
 });
+
+await build({
+  entryPoints: [path.join(root, 'transition/images/travel/travel.js')],
+  outfile: path.join(out, 'transition/images/assets/travel-globe.bundle.js'),
+  bundle: true, format: 'esm', target: 'es2022', minify: true
+});
