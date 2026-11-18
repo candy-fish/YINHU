@@ -253,6 +253,7 @@ const mistFragmentShader = `
     uniform float uTime;
     uniform float uMotion;
     uniform vec3 uSmokeColor;
+    uniform float uReveal;
     varying vec2 vMist;
     varying float vPhase;
     void main() {
@@ -263,7 +264,7 @@ const mistFragmentShader = `
             * (1.0 - smoothstep(0.7, 0.98, vMist.x));
         float folds = 0.5 + 0.5 * sin(vMist.x * 19.0 - time * 0.55 + vPhase);
         float veil = 0.5 + 0.5 * sin(vMist.x * 9.0 - time * 0.29 + vPhase * 1.6);
-        float alpha = crossFade * ends * (0.025 + 0.16 * folds * veil);
+        float alpha = crossFade * ends * (0.025 + 0.16 * folds * veil) * uReveal;
         if (alpha < 0.002) discard;
         gl_FragColor = vec4(uSmokeColor, alpha);
     }
@@ -274,13 +275,14 @@ const fragmentShader = `
     uniform vec3 uCore;
     uniform float uOpacity;
     uniform float uHalo;
+    uniform float uReveal;
     varying float vAlpha;
     varying float vWarmth;
     void main() {
         float radius = length(gl_PointCoord - 0.5) * 2.0;
         float grain = exp(-radius * radius * mix(4.5, 3.0, uHalo));
         grain *= 1.0 - smoothstep(0.65, 1.0, radius);
-        float alpha = grain * vAlpha * uOpacity;
+        float alpha = grain * vAlpha * uOpacity * uReveal;
         if (alpha < 0.003) discard;
         gl_FragColor = vec4(mix(uGold, uCore, vWarmth * (1.0 - uHalo)), alpha);
     }
@@ -298,7 +300,7 @@ export function createGraceGuidance(parent, anchor = new THREE.Vector3(-1.5, 0.4
                 uPaths: { value: pathTexture },
                 uTime: { value: 0 }, uMotion: { value: 1 }, uViewportHeight: { value: 720 },
                 uScale: { value: halo ? 3.8 : 1 }, uHalo: { value: halo ? 1 : 0 },
-                uOpacity: { value: halo ? 0.11 : 0.86 },
+                uOpacity: { value: halo ? 0.11 : 0.86 }, uReveal: { value: 1 },
                 uGold: { value: new THREE.Color(GOLDEN_LIGHT.halo) },
                 uCore: { value: new THREE.Color(GOLDEN_LIGHT.core) }
             },
@@ -317,7 +319,7 @@ export function createGraceGuidance(parent, anchor = new THREE.Vector3(-1.5, 0.4
         uniforms: {
             uPaths: { value: pathTexture },
             uTime: { value: 0 }, uMotion: { value: 1 },
-            uSmokeColor: { value: new THREE.Color(0xecebe5) }
+            uSmokeColor: { value: new THREE.Color(GOLDEN_LIGHT.dust) }, uReveal: { value: 1 }
         },
         vertexShader: mistVertexShader, fragmentShader: mistFragmentShader,
         transparent: true, blending: THREE.AdditiveBlending,
@@ -333,6 +335,10 @@ export function createGraceGuidance(parent, anchor = new THREE.Vector3(-1.5, 0.4
     parent.add(root);
     return {
         root,
+        setReveal(amount) {
+            for (const material of materials) material.uniforms.uReveal.value = amount;
+            root.visible = amount > 0;
+        },
         update(time, reducedMotion, viewportHeight) {
             for (const material of materials) {
                 material.uniforms.uTime.value = reducedMotion ? 0 : time;

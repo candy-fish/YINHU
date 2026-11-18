@@ -5,8 +5,8 @@ export const smooth = (start, end, value) => {
     return t * t * (3 - 2 * t);
 };
 
-// Readiness starts the final act; downloading/parsing never gets a fake deadline.
-// A cached tree still gets enough time for the vines and forest to take shape.
+// Mist and grace have their own clock. Only the final tree reveal waits for
+// downloading/parsing, so they remain visible throughout a slow model load.
 export function createJourneyClock({ reducedMotion = false } = {}) {
     const scale = reducedMotion ? 0.58 : 1;
     let elapsed = 0;
@@ -16,20 +16,18 @@ export function createJourneyClock({ reducedMotion = false } = {}) {
         settle() { settled = true; },
         advance(delta) {
             elapsed += Math.max(0, Math.min(delta, 0.1));
-            if (settled && finishAt === null) finishAt = Math.max(9 * scale, elapsed);
-            const ending = finishAt === null ? 0 : Math.max(0, elapsed - finishAt) / scale;
+            if (settled && finishAt === null) finishAt = Math.max(10.2 * scale, elapsed);
+            const ending = finishAt === null ? 0 : Math.max(0,elapsed-finishAt)/scale;
             const t = elapsed / scale;
             return {
                 elapsed, time: t, ending,
-                vines: smooth(0.3, 3.4, t),
-                space: smooth(2.8, 5.2, t),
-                growth: smooth(4, 8.8, t),
-                fold: smooth(6, 10, t),
-                gold: smooth(0, 3.2, ending),
-                burst: smooth(3.1, 5.2, ending),
-                reveal: smooth(5.3, 6.5, ending),
-                done: ending >= 6.5,
-                waiting: finishAt === null && t >= 9
+                vines: smooth(0.2, 2.9, t),
+                dissolve: smooth(2.7,5.9,t),
+                mist: smooth(3.6,6.8,t),
+                grace: smooth(4.8,8.8,t),
+                tree: smooth(0,2.8,ending),
+                done: ending >= 3.1,
+                waiting: finishAt === null && t >= 10.2
             };
         }
     };

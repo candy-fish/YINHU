@@ -14,9 +14,10 @@
 html.mind-journey-pending{background:#030503}
 .mind-journey-pending .mind-page{visibility:hidden}
 .mind-journey-pending body{background:#030503}
-.mind-journey{position:fixed;inset:0;z-index:10000;overflow:hidden;background:#030503;isolation:isolate;opacity:1;touch-action:none}
+.mind-journey{position:fixed;inset:0;z-index:10000;overflow:hidden;background:transparent;isolation:isolate;opacity:1;touch-action:none}
+.journey-veil{position:absolute;inset:0;background:#030503;pointer-events:none}
+.mind-journey-active .mind-back,.mind-journey-active .mind-cursor,.mind-journey-active .scene-status,.mind-journey-active .grace-entrance{visibility:hidden}
 .mind-journey canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-.mind-journey::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 24%,#02040355 78%,#0009);z-index:2}
+.mind-journey::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 24%,#02040355 78%,#0009);opacity:var(--journey-shade,1);z-index:2}
 .journey-skip{position:absolute;right:max(28px,env(safe-area-inset-right));top:max(25px,env(safe-area-inset-top));z-index:3;background:none;border:0;border-bottom:1px solid #c1ba8a38;color:#b6b89a99;padding:6px 0;cursor:pointer;font:10px "Noto Serif SC",serif;letter-spacing:.22em;transition:color .2s}
 .journey-skip:hover,.journey-skip:focus-visible{color:#f7e9b5;outline-offset:6px}
-.journey-status{position:absolute;bottom:24px;left:28px;z-index:3;color:#c4bf9c88;font:10px "Noto Serif SC",serif;letter-spacing:.22em}

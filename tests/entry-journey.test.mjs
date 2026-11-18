@@ -2,8 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import * as THREE from 'three';
-import { GOLDEN_LIGHT } from '../transition/mind/golden-light.js';
 import { createJourneyClock, readJourney, ENTRY_KEY, trackAt, seededRandom, smooth } from '../transition/mind/entry-journey-state.js';
 
 function run(clock, seconds) {
@@ -12,32 +10,29 @@ function run(clock, seconds) {
     return state;
 }
 
-test('a slow tree keeps the green forest flight alive without starting the final act', () => {
+test('mist and grace appear before a slow tree is ready', () => {
     const clock=createJourneyClock();
     const state=run(clock,120);
     assert.equal(state.waiting,true);
-    assert.equal(state.growth,1);assert.equal(state.fold,1);
-    assert.equal(state.gold,0);assert.equal(state.burst,0);assert.equal(state.done,false);
+    assert.equal(state.mist,1);assert.equal(state.grace,1);assert.equal(state.tree,0);assert.equal(state.done,false);
     clock.settle();
-    const gold=run(clock,2);
-    assert.ok(gold.gold>.5);assert.equal(gold.burst,0);
-    const stars=run(clock,2.5);
-    assert.equal(stars.gold,1);assert.ok(stars.burst>.5);assert.equal(stars.reveal,0);
-    assert.equal(run(clock,2.5).done,true);
+    const tree=run(clock,1.5);
+    assert.ok(tree.tree>0&&tree.tree<1);assert.equal(tree.mist,1);assert.equal(tree.grace,1);
+    assert.equal(run(clock,3).done,true);
 });
 
-test('cached trees still unfold vines, grid and forest in order before gold and stars', () => {
+test('cached trees preserve vines, mist, grace and tree reveal order', () => {
     const clock=createJourneyClock();clock.settle();
-    const vines=run(clock,2);assert.ok(vines.vines>0);assert.equal(vines.space,0);
-    const grid=run(clock,2);assert.ok(grid.space>0);assert.equal(grid.gold,0);
-    const forest=run(clock,4);assert.ok(forest.growth>.8);assert.ok(forest.fold>.4);assert.equal(forest.gold,0);
-    const gold=run(clock,3);assert.ok(gold.gold>.5);assert.equal(gold.done,false);
-    assert.equal(run(clock,5).done,true);
+    const vines=run(clock,2);assert.ok(vines.vines>0);assert.equal(vines.mist,0);
+    const mist=run(clock,2.5);assert.ok(mist.mist>0);assert.equal(mist.grace,0);assert.equal(mist.tree,0);
+    const grace=run(clock,5.5);assert.equal(grace.mist,1);assert.equal(grace.grace,1);assert.equal(grace.tree,0);
+    const tree=run(clock,1.5);assert.ok(tree.tree>0&&tree.tree<1);
+    assert.equal(run(clock,2).done,true);
 });
 
 test('reduced motion shortens the sequence while still waiting for the actual tree', () => {
     const clock=createJourneyClock({reducedMotion:true});
-    assert.equal(run(clock,30).gold,0);
+    assert.equal(run(clock,30).tree,0);
     clock.settle();assert.equal(run(clock,4).done,true);
 });
 
@@ -129,43 +124,36 @@ test('blocked storage falls back to ordinary navigation without leaving a black 
 });
 
 const journeySource=await readFile(new URL('../transition/mind/entry-journey.js',import.meta.url),'utf8');
-function createSceneHarness({gpuFailure=false}={}){
-    const elements=[],classes=new Set(['mind-journey-pending']),vineStrokes=[];
-    let nextFrame,now=0,renderedScene,rendererDisposed=false,finished=0,pathSegments=0;
+function createSceneHarness({canvasFailure=false}={}){
+    const elements=[],classes=new Set(['mind-journey-pending']),vineStrokes=[],states=[];
+    let nextFrame,now=0,finished=0,pathSegments=0;
     const context=new Proxy({createRadialGradient:()=>({addColorStop(){}}),createLinearGradient:()=>({addColorStop(){}}),
         beginPath(){pathSegments=0;},lineTo(){pathSegments++;},
         stroke(){if(pathSegments>0)vineStrokes.push({color:context.strokeStyle,shadow:context.shadowColor});}
     },{get:(target,key)=>target[key]??(()=>{})});
     class Element {
-        children=[];style={};dataset={};listeners={};
+        children=[];style={setProperty(){}};dataset={};listeners={};
         setAttribute(){} append(...children){this.children.push(...children);}
         appendChild(child){this.children.push(child);} prepend(child){this.children.unshift(child);}
-        remove(){this.removed=true;} getContext(){return context;}
+        remove(){this.removed=true;} getContext(){return canvasFailure?null:context;}
         addEventListener(name,fn){this.listeners[name]=fn;}
     }
-    const root={classList:{remove:name=>classes.delete(name)}};
+    const root={classList:{add:name=>classes.add(name),remove:(...names)=>names.forEach(name=>classes.delete(name))}};
     const document={documentElement:root,body:new Element(),createElement:()=>{const e=new Element();elements.push(e);return e;},
         addEventListener(){},removeEventListener(){},hidden:false};
     const storage=new Map([[ENTRY_KEY,JSON.stringify({created:Date.now(),x:.82,y:.4,radius:.08})]]);
     const window={sessionStorage:{getItem:k=>storage.get(k),removeItem:k=>storage.delete(k)},
         matchMedia:()=>({matches:false}),addEventListener(){},removeEventListener(){}};
-    class Renderer {
-        constructor(){if(gpuFailure)throw Error('No WebGL context');this.domElement=new Element();}
-        setClearColor(){} setPixelRatio(){} getPixelRatio(){return 1;}setSize(){}
-        render(scene,camera){renderedScene=scene;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);}
-        dispose(){rendererDisposed=true;}forceContextLoss(){}
-    }
-    const scope={THREE:{...THREE,WebGLRenderer:Renderer},GOLDEN_LIGHT,createJourneyClock,readJourney,seededRandom,smooth,trackAt,
+    const scope={createJourneyClock,readJourney,seededRandom,smooth,trackAt,
         window,document,innerWidth:1200,innerHeight:800,devicePixelRatio:1,
         performance:{now:()=>now},requestAnimationFrame:fn=>{nextFrame=fn;return 1;},cancelAnimationFrame(){}};
     vm.runInNewContext(journeySource.replace(/^import .*;\r?\n/gm,'').replace('export function createMindJourney','function createMindJourney')+'\nglobalThis.createJourney=createMindJourney;',scope);
-    const journey=scope.createJourney({onFinish(){finished++;}});
-    return {journey,elements,classes,vineStrokes,get finished(){return finished;},get disposed(){return rendererDisposed;},
-        get scene(){return renderedScene;},advance(seconds){for(let i=0;i<Math.round(seconds*10);i++){now+=100;nextFrame(now);}}};
+    const journey=scope.createJourney({onFrame:state=>states.push(state),onFinish(){finished++;}});
+    return {journey,elements,classes,vineStrokes,states,get finished(){return finished;},advance(seconds){for(let i=0;i<Math.round(seconds*10);i++){now+=100;nextFrame(now);}}};
 }
 
 test('all growing vines keep a single shared color and glow through growth and edge recoil',()=>{
-    const page=createSceneHarness();page.advance(3.3);
+    const page=createSceneHarness();page.advance(2.5);
     assert.ok(page.vineStrokes.length>100);
     const colors=new Set(page.vineStrokes.map(stroke=>stroke.color));
     assert.equal(colors.size,1);
@@ -173,28 +161,26 @@ test('all growing vines keep a single shared color and glow through growth and e
     page.journey.dispose();
 });
 
-test('the forest scene uses thousands of folded leaf instances and yields to the tree after readiness',async()=>{
-    const page=createSceneHarness();
-    page.advance(8);
-    const leaves=page.scene.getObjectByName('journey-folded-triangle-leaves');
-    assert.ok(leaves.isInstancedMesh);assert.ok(leaves.count>7000);
-    assert.equal(leaves.geometry.attributes.aFold.count,leaves.geometry.attributes.position.count);
-    for(const value of leaves.instanceMatrix.array)assert.ok(Number.isFinite(value));
-    assert.ok(page.scene.getObjectByName('journey-fine-spatial-grid').isLineSegments);
+test('dissolving vines overlap mist and grace before the final tree',async()=>{
+    const page=createSceneHarness();page.advance(5.5);
+    let state=page.states.at(-1);
+    assert.ok(state.dissolve>0);assert.ok(state.mist>.5);assert.ok(state.grace>0);assert.equal(state.tree,0);
+    assert.equal(page.elements.some(element=>element.className==='journey-status'),false);
     page.journey.progress({loaded:70,total:100});page.advance(20);
-    assert.equal(page.journey.active,true);assert.equal(leaves.material.uniforms.uGold.value,0);
-    page.journey.ready();page.advance(2);
-    assert.ok(leaves.material.uniforms.uGold.value>.5);
-    page.advance(5);await page.journey.finished;
-    assert.equal(page.journey.active,false);assert.equal(page.disposed,true);
-    assert.equal(page.classes.has('mind-journey-pending'),false);assert.equal(page.finished,1);
+    state=page.states.at(-1);
+    assert.equal(page.journey.active,true);assert.equal(state.mist,1);assert.equal(state.grace,1);assert.equal(state.tree,0);
+    page.journey.ready();page.advance(1.5);
+    assert.ok(page.states.at(-1).tree>0&&page.states.at(-1).tree<1);
+    page.advance(2);await page.journey.finished;
+    assert.equal(page.journey.active,false);assert.equal(page.classes.size,0);assert.equal(page.finished,1);
 });
 
-test('skipping and unavailable WebGL restore the actual mind page without holding its loading state',()=>{
+test('skipping and unavailable canvas restore the actual mind page',()=>{
     const page=createSceneHarness();
     const skip=page.elements.find(element=>element.className==='journey-skip');
     skip.listeners.click();page.journey.dispose();
-    assert.equal(page.finished,1);assert.equal(page.disposed,true);assert.equal(page.classes.size,0);
-    const fallback=createSceneHarness({gpuFailure:true});
+    assert.equal(page.finished,1);assert.equal(page.classes.size,0);
+    assert.equal(page.states.at(-1).mist,1);assert.equal(page.states.at(-1).grace,1);assert.equal(page.states.at(-1).tree,1);
+    const fallback=createSceneHarness({canvasFailure:true});
     assert.equal(fallback.journey,null);assert.equal(fallback.classes.size,0);
 });

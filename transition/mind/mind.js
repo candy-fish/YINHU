@@ -24,10 +24,11 @@ const GRACE_HEIGHT = 0.68;
 const GRACE_WIDTH = 0.197;
 const GRACE_DEPTH = 0.035;
 const GRACE_TIP_LENGTH = 0.13;
-const GRACE_LIGHT_INTENSITY = 1.6;
-const GRACE_GROUND_LIGHT_INTENSITY = 1.25;
-const GRACE_CORE_OPACITY = 0.2;
-const GRACE_HALO_OPACITY = 0.07;
+const GRACE_LIGHT_INTENSITY = 1.2;
+const GRACE_GROUND_LIGHT_INTENSITY = 1.0;
+const GRACE_CORE_COLOR = 0xffe0ac;
+const GRACE_CORE_OPACITY = 0.13;
+const GRACE_HALO_OPACITY = 0.06;
 const GRACE_DUST_OPACITY = 0.58;
 const GRACE_FRAME_INTERVAL = 1000 / 30;
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -138,6 +139,69 @@ const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
 let cabinetOpen = false;
 let pickingPoint = false;
 let animationFrameId = null;
+let entranceReveal = null;
+let entranceCameraGoal = null;
+const entranceLookTarget = cameraTarget.clone();
+const entranceTreeOpacity = { value: 1 };
+
+function applyEntranceReveal() {
+    if (!entranceReveal) return;
+    const { mist, grace, tree } = entranceReveal;
+    entranceTreeOpacity.value = tree;
+    if (treeModel) treeModel.visible = tree > 0;
+    if (siteOfGrace) {
+        siteOfGrace.guidance.setReveal(mist);
+        siteOfGrace.group.visible = grace > 0;
+        siteOfGrace.corePoints.material.uniforms.uOpacity.value = GRACE_CORE_OPACITY * grace;
+        siteOfGrace.haloPoints.material.uniforms.uOpacity.value = GRACE_HALO_OPACITY * grace;
+        siteOfGrace.dustPoints.material.uniforms.uOpacity.value = GRACE_DUST_OPACITY * grace;
+        siteOfGrace.light.intensity = GRACE_LIGHT_INTENSITY * grace;
+        siteOfGrace.groundLight.intensity = GRACE_GROUND_LIGHT_INTENSITY * grace;
+    }
+    if (treeAtmosphere) {
+        treeAtmosphere.root.visible = tree > 0;
+        for (const object of treeAtmosphere.root.children) {
+            const material = object.material;
+            material.userData.entranceOpacity ??= material.uniforms.uOpacity.value;
+            material.uniforms.uOpacity.value = material.userData.entranceOpacity * tree;
+        }
+    }
+    const equipped = treePivot.getObjectByName('equipped-thoughts');
+    if (equipped) equipped.visible = tree > .96;
+    if (treeVeins) treeVeins.root.visible = tree > .96;
+}
+
+function setEntranceReveal(state) {
+    entranceReveal = state;
+    applyEntranceReveal();
+    sceneNeedsRender = true;
+    requestSceneFrame();
+}
+
+function prepareTreeEntranceFade(model) {
+    if (!entranceReveal) return;
+    const materials = new Set();
+    model.traverse(object => {
+        if (object.isMesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
+    });
+    for (const material of materials) {
+        const previousCompile = material.onBeforeCompile;
+        const previousKey = material.customProgramCacheKey.bind(material);
+        const cacheKey = previousKey();
+        material.onBeforeCompile = function(shader, renderer) {
+            previousCompile.call(this, shader, renderer);
+            shader.uniforms.uEntranceTreeOpacity = entranceTreeOpacity;
+            shader.fragmentShader = 'uniform float uEntranceTreeOpacity;\n' + shader.fragmentShader.replace(
+                '#include <clipping_planes_fragment>',
+                `#include <clipping_planes_fragment>
+                float entryGrain = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(.06711056, .00583715))));
+                if (uEntranceTreeOpacity < 1. && entryGrain >= uEntranceTreeOpacity) discard;`
+            );
+        };
+        material.customProgramCacheKey = () => cacheKey + ':entrance-fade';
+        material.needsUpdate = true;
+    }
+}
 
 function requestSceneFrame() {
     if (animationFrameId === null && !cabinetOpen && !document.hidden) {
@@ -502,6 +566,7 @@ function createGraceDustMaterial() {
 }
 
 function createSiteOfGrace() {
+    if (siteOfGrace) return;
     const group = new THREE.Group();
     group.name = "site-of-grace";
     group.position.copy(GRACE_ANCHOR);
@@ -527,7 +592,7 @@ function createSiteOfGrace() {
     haloPoints.frustumCulled = false;
     facingRoot.add(haloPoints);
 
-    const corePoints = new THREE.Points(geometry, createGraceMaterial(GOLDEN_LIGHT.core, GRACE_CORE_OPACITY, 1, 0.92));
+    const corePoints = new THREE.Points(geometry, createGraceMaterial(GRACE_CORE_COLOR, GRACE_CORE_OPACITY, .94, 0.92));
     corePoints.name = "site-of-grace-core";
     corePoints.renderOrder = 2;
     corePoints.frustumCulled = false;
@@ -557,6 +622,7 @@ function createSiteOfGrace() {
         groundLight,
         restApplied: false
     };
+    applyEntranceReveal();
 }
 
 function applyGraceRestState() {
@@ -592,10 +658,10 @@ function updateSiteOfGrace(now) {
     siteOfGrace.group.position.y = GRACE_ANCHOR.y + floatWave * 0.008;
     siteOfGrace.corePoints.material.uniforms.uTime.value = time;
     siteOfGrace.corePoints.material.uniforms.uMotion.value = 1;
-    siteOfGrace.corePoints.material.uniforms.uOpacity.value = GRACE_CORE_OPACITY + lightWave * 0.02;
+    siteOfGrace.corePoints.material.uniforms.uOpacity.value = GRACE_CORE_OPACITY * (1 + lightWave * .07);
     siteOfGrace.haloPoints.material.uniforms.uTime.value = time;
     siteOfGrace.haloPoints.material.uniforms.uMotion.value = 1;
-    siteOfGrace.haloPoints.material.uniforms.uOpacity.value = GRACE_HALO_OPACITY + lightWave * 0.006;
+    siteOfGrace.haloPoints.material.uniforms.uOpacity.value = GRACE_HALO_OPACITY * (1 + lightWave * .055);
     siteOfGrace.dustPoints.material.uniforms.uTime.value = time;
     siteOfGrace.dustPoints.material.uniforms.uMotion.value = 1;
     siteOfGrace.guidance.update(time, false, host.clientHeight * renderer.getPixelRatio());
@@ -711,11 +777,19 @@ function loadTree() {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     const onLoaded = (gltf) => {
+            const previousCameraPosition = camera.position.clone();
             treeModel = gltf.scene;
             normalizeModel(treeModel);
+            prepareTreeEntranceFade(treeModel);
             treePivot.add(treeModel);
             treeVeins = createTreeVeins(treePivot);
             fitCamera();
+            if (entranceReveal) {
+                entranceCameraGoal = camera.position.clone();
+                camera.position.copy(previousCameraPosition);
+                camera.lookAt(entranceLookTarget);
+                applyEntranceReveal();
+            }
             host.classList.add("is-ready");
             sceneStatus.hidden = true;
             scene.updateMatrixWorld(true);
@@ -728,6 +802,7 @@ function loadTree() {
                 try {
                     createSiteOfGrace();
                     treeAtmosphere = createTreeAtmosphere(tiltRoot, view.modelSize, host.clientHeight * renderer.getPixelRatio());
+                    applyEntranceReveal();
                     sceneNeedsRender = true;
                 } catch (error) {
                     console.error("Site of grace failed to initialize:", error);
@@ -938,13 +1013,19 @@ function animate(now) {
     const deltaTime = Math.min((now - lastFrameTime) / 1000, 0.05);
     lastFrameTime = now;
 
-    // The tree is already loaded underneath the journey; spend the frame budget
-    // on the flight until the overlay hands rendering back to this scene.
-    if (entryJourney?.active) { requestSceneFrame(); return; }
+    if (entranceCameraGoal) {
+        const blend = 1 - Math.exp(-deltaTime * 2.4);
+        camera.position.lerp(entranceCameraGoal, blend);
+        entranceLookTarget.lerp(cameraTarget, blend);
+        camera.lookAt(entranceLookTarget);
+        if (camera.position.distanceTo(entranceCameraGoal) < .001) entranceCameraGoal = null;
+        sceneNeedsRender = true;
+    }
 
     if (updateSiteOfGrace(now)) sceneNeedsRender = true;
     if (treeVeins?.update(now, reducedMotion.matches)) sceneNeedsRender = true;
     if (treeAtmosphere?.update(now, reducedMotion.matches)) sceneNeedsRender = true;
+    if (entranceReveal) { applyEntranceReveal();sceneNeedsRender = true; }
 
     if (!pointer.dragging) {
         rotation.targetYaw += rotation.velocityYaw * deltaTime;
@@ -1043,10 +1124,17 @@ const cabinet = createCabinet({
 });
 if (location.hash === '#cabinet') setCabinetOpen(true);
 fitCamera();
-const entryJourney = createMindJourney({ onFinish() {
+const entryJourney = createMindJourney({ onFrame: setEntranceReveal, onFinish() {
+    entranceReveal = null;
+    entranceTreeOpacity.value = 1;
+    if (siteOfGrace) siteOfGrace.restApplied = false;
     lastFrameTime = performance.now();
     sceneNeedsRender = true;
     requestSceneFrame();
 } });
+if (entryJourney) setEntranceReveal({ mist: 0, grace: 0, tree: 0 });
+try { createSiteOfGrace(); }
+catch (error) { console.error('Site of grace failed to initialize:',error); }
+host.classList.add('is-ready');
 loadTree();
 requestSceneFrame();
