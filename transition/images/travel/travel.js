@@ -1,4 +1,4 @@
-import { Color, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene,
+import { Color, MathUtils, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, PlaneGeometry, Scene,
   SphereGeometry, SRGBColorSpace, TextureLoader, WebGLRenderer } from 'three';
 
 const canvas = document.getElementById('earth');
@@ -11,7 +11,11 @@ async function createGlobe() {
   scene.background = new Color('#030507');
   const camera = new PerspectiveCamera(35, 1, .1, 100);
   // The bundled module lives beside the local NASA Black Marble texture.
-  const texture = await new TextureLoader().loadAsync(new URL('./earth-night-2016.jpg', import.meta.url).href);
+  const loader = new TextureLoader();
+  const [texture, lunarTexture] = await Promise.all([
+    loader.loadAsync(new URL('./earth-night-2016.jpg', import.meta.url).href),
+    loader.loadAsync(new URL('./lunar-foreground.png', import.meta.url).href)
+  ]);
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const geometry = new SphereGeometry(1, 128, 64);
@@ -43,6 +47,19 @@ async function createGlobe() {
   earth.rotation.set(-.38, MathUtils.degToRad(165), 0);
   scene.add(earth);
 
+  // Composite the fixed lunar foreground in the same WebGL frame as the globe.
+  // Its transparent upper section preserves the low, gently curved horizon.
+  lunarTexture.colorSpace = SRGBColorSpace;
+  const foreground = new Scene();
+  const foregroundCamera = new OrthographicCamera(-.5, .5, .5, -.5, .1, 10);
+  foregroundCamera.position.z = 1;
+  const lunarGeometry = new PlaneGeometry(1, .22);
+  const lunarMaterial = new MeshBasicMaterial({ map: lunarTexture, color: '#a6a6a6',
+    transparent: true, depthTest: false, depthWrite: false });
+  const lunarSurface = new Mesh(lunarGeometry, lunarMaterial);
+  lunarSurface.position.y = -.39;
+  foreground.add(lunarSurface);
+
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let diameter = 1, pendingFrame = 0, drag = null, lastTime = null, lastPaint = -Infinity, disposed = false;
   function animate(time) {
@@ -56,6 +73,9 @@ async function createGlobe() {
     // Keep idle animation at 30 fps, while direct manipulation remains responsive.
     if (time - lastPaint >= 1000 / 30 || drag || reducedMotion.matches) {
       renderer.render(scene, camera);
+      renderer.autoClear = false;
+      renderer.render(foreground, foregroundCamera);
+      renderer.autoClear = true;
       lastPaint = time;
     }
     if (!reducedMotion.matches) render();
@@ -126,7 +146,8 @@ async function createGlobe() {
     suspend();
     if (event.persisted) return;
     disposed = true;
-    texture.dispose(); geometry.dispose(); material.dispose(); renderer.dispose();
+    texture.dispose(); geometry.dispose(); material.dispose();
+    lunarTexture.dispose(); lunarGeometry.dispose(); lunarMaterial.dispose(); renderer.dispose();
   });
   resize();
   canvas.setAttribute('aria-busy', 'false');

@@ -50,6 +50,7 @@ const required = [
   'transition/images/travel/travel.css',
   'transition/images/assets/travel-globe.bundle.js',
   'transition/images/assets/earth-night-2016.jpg',
+  'transition/images/assets/lunar-foreground.png',
   'transition/images/assets/companions-3d.bundle.js',
   'transition/images/assets/aurora-curtains.glb',
   'transition/images/assets/deer-companion.glb',
