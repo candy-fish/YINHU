@@ -7,7 +7,7 @@ import { pipeline } from 'node:stream/promises';
 
 // Live images source with a bounded built-site fallback for the return link.
 // Shared APIs stay in the existing preview Worker on loopback port 4174.
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
 const imageRoot = path.join(root, 'transition/images');
 const fontRoot = path.join(root, 'node_modules/@fontsource');
 const builtRoot = path.join(root, 'dist');

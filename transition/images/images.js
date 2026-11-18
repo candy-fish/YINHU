@@ -384,7 +384,17 @@ $('confirmDelete').addEventListener('click', async () => {
   finally { $('confirmDelete').disabled = false; }
 });
 window.addEventListener('focus', () => { if (!drawing && !editor.open && !detail.open) refresh(lastSavedID); });
-await refresh(); frameID = requestAnimationFrame(tick);
+// Lay out and animate independently of record loading; only the fully rendered animals open the curtain.
+renderWindows(); frameID = requestAnimationFrame(tick);
+void refresh();
+companions.ready.then(() => {
+  companions.reset();
+  companions.update({ camera, scale, width: scene.clientWidth, dt: 0, paused: false, interacting: false });
+  window.BlackDoorImagesArrival?.ready();
+}).catch(error => {
+  console.warn('Companion models could not load:', error);
+  window.BlackDoorImagesArrival?.fail();
+});
 
 if (globalThis.BLACKDOOR_CONFIG?.shared) {
   setInterval(() => {

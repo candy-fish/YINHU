@@ -1,11 +1,13 @@
 const TAU = Math.PI * 2;
 export const ARRIVAL_KEY = 'blackdoor.images.arrival.v1';
-export const JOURNEY = Object.freeze({ pair: .46, follow: .055, release: .15, swim: .285, melt: .105,
-    door: 11.35, eyes: 12.1, blackout: 12.65, end: 13 });
+const FLIGHT = { pair: .325, follow: .055, release: .15, swim: .285, melt: .105 };
+const stairsReady = FLIGHT.release + 23 * FLIGHT.pair + FLIGHT.follow + FLIGHT.swim + FLIGHT.melt;
+export const JOURNEY = Object.freeze({ ...FLIGHT,
+    door: stairsReady + .175, eyes: stairsReady + .925, blackout: stairsReady + 1.475, end: stairsReady + 1.825 });
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
 const mix = (a, b, t) => a + (b - a) * t;
-const pointMix = (a, b, t) => [mix(a[0], b[0], t), mix(a[1], b[1], t)];
+const pointMix = (a, b, t) => t === 0 ? [...a] : t === 1 ? [...b] : [mix(a[0], b[0], t), mix(a[1], b[1], t)];
 
 export function createStairway(width, height) {
     const portrait = width < height * .85;
@@ -14,14 +16,16 @@ export function createStairway(width, height) {
     const run = (top[0] - start[0]) / 12, rise = (start[1] - top[1]) / 12;
     const segments = [];
     for (let step = 0; step < 12; step++) {
-        const a = [start[0] + run * step, start[1] - rise * step];
-        const b = [a[0] + run, a[1]];
-        const c = [b[0], a[1] - rise];
+        const a = segments.at(-1)?.[1] ?? start;
+        const b = [start[0] + run * (step + 1), a[1]];
+        const c = step === 11 ? top : [b[0], start[1] - rise * (step + 1)];
         segments.push([a, b], [b, c]);
     }
     const doorHeight = height * (portrait ? .24 : .29);
     const doorWidth = Math.min(width * (portrait ? .135 : .072), doorHeight * .46);
-    const door = { x: top[0] + width * .035, y: top[1] - doorHeight,
+    const landing = [Math.min(width * .96, top[0] + doorWidth + width * .1), top[1]];
+    const door = { x: (top[0] + landing[0] - doorWidth) / 2,
+        y: top[1] - doorHeight - Math.max(12, doorHeight * .12),
         width: doorWidth, height: doorHeight };
     // Match images.css scene insets and images.js's world scale; all edges use its 6px road.
     let sceneTop = height >= 900 ? 220 : 198, sceneBottom = height >= 900 ? 160 : 142;
@@ -29,8 +33,7 @@ export function createStairway(width, height) {
     else if (height <= 660) { sceneTop = 140; sceneBottom = 110; }
     const sceneHeight = Math.max(height <= 600 ? 205 : 0, Math.max(height, height <= 600 ? 650 : 0) - sceneTop - sceneBottom);
     const sceneScale = Math.max(.3, Math.min(1, (sceneHeight - 10) / 650));
-    return { start, top, segments, run, rise, door, roadWidth: 6 * sceneScale,
-        landing: [Math.min(width * .96, door.x + doorWidth + width * .065), top[1]] };
+    return { start, top, segments, run, rise, door, roadWidth: 6 * sceneScale, landing };
 }
 
 export function orderShards(shards) {
@@ -76,7 +79,7 @@ export function journeyPhase(time, reduced = false) {
     if (reduced) return { door: 0, eyes: 0, black: smooth(time / .28), done: time >= .38 };
     const eyeTime = (time - JOURNEY.eyes) / .55;
     return { door: smooth((time - JOURNEY.door) / .65),
-        eyes: eyeTime > 0 && eyeTime < 1 ? Math.sin(eyeTime * Math.PI) ** 2 : 0,
+        eyes: eyeTime > 0 && eyeTime < 1 && time < JOURNEY.blackout ? Math.sin(eyeTime * Math.PI) ** 2 : 0,
         black: time >= JOURNEY.blackout ? 1 : 0, done: time >= JOURNEY.end };
 }
 
@@ -88,6 +91,11 @@ function polygon(ctx, vertices, fill = false) {
 }
 
 function path(ctx, vertices, progress = 1) {
+    if (progress >= 1) {
+        ctx.beginPath(); ctx.moveTo(...vertices[0]);
+        for (const vertex of vertices.slice(1)) ctx.lineTo(...vertex);
+        ctx.stroke(); return;
+    }
     const lengths = vertices.slice(1).map((vertex, i) => Math.hypot(vertex[0] - vertices[i][0], vertex[1] - vertices[i][1]));
     let remaining = lengths.reduce((sum, length) => sum + length, 0) * clamp(progress);
     ctx.beginPath(); ctx.moveTo(...vertices[0]);
@@ -105,6 +113,60 @@ function haze(ctx, x, y, radius, color, opacity, stretch = 1) {
     light.addColorStop(1, color + '00');
     ctx.fillStyle = light; ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
     ctx.restore();
+}
+
+function paintStairPillars(ctx, stairs, height, completed, time, opacity) {
+    const colors = ['#BBD7E5', '#BBDDC5', '#EBCEE5', '#77718F', '#ECC5B9'];
+    const gap = Math.max(8, stairs.roadWidth * 2.5);
+    const columns = [];
+    for (let edge = 0; edge < completed; edge += 2) {
+        columns.push({ segment: stairs.segments[edge], step: edge / 2,
+            settledAt: JOURNEY.release + edge * JOURNEY.pair + JOURNEY.follow + JOURNEY.swim + JOURNEY.melt });
+    }
+    if (completed === 24) columns.push({ segment: [stairs.top, stairs.landing], step: 12, settledAt: JOURNEY.door - .16 });
+    for (const { segment: [a, b], step, settledAt } of columns) {
+        const strength = opacity * smooth((time - settledAt) / .65);
+        // Use the ordinary tread's inset on both sides, including the wider doorway platform.
+        const inset = stairs.run * .12, left = a[0] + inset;
+        const columnWidth = b[0] - a[0] - inset * 2;
+        const feather = stairs.run * .76 * .075;
+        const bands = Math.max(24, Math.round(columnWidth / (stairs.run * .76) * 24));
+        const top = a[1] + gap, columnHeight = Math.max(1, height - top);
+        const color = colors[step % colors.length];
+        const light = ctx.createLinearGradient(0, top, 0, height);
+        light.addColorStop(0, color + '00');
+        light.addColorStop(.015, color + '33');
+        light.addColorStop(.28, color + '23');
+        light.addColorStop(.7, color + '0c');
+        light.addColorStop(1, color + '00');
+        ctx.fillStyle = light;
+        // A broad, even core and a narrow feather make the vertical boundaries distinct.
+        for (let band = 0; band < bands; band++) {
+            const across = (band + .5) / bands;
+            ctx.globalAlpha = strength * smooth(Math.min(across, 1 - across) * columnWidth / feather);
+            ctx.fillRect(left + columnWidth * band / bands, top, columnWidth / bands, columnHeight);
+        }
+
+        let seed = 61913 + step * 7919;
+        const random = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
+        const count = Math.max(14, Math.min(30, Math.round(columnWidth * .5)));
+        for (let star = 0; star < count; star++) {
+            // A fixed distribution clusters near the cap and thins gradually toward the bottom.
+            const depth = random() ** 2.3, across = .1 + random() * .8, phase = random() * TAU;
+            const x = left + columnWidth * across + Math.sin(time * .22 + phase) * columnWidth * .025;
+            const y = top + 2 + depth * Math.max(0, columnHeight - 4);
+            const size = star % 13 === 0 ? 1.05 : .35 + random() * .55;
+            ctx.globalAlpha = strength * (.2 + random() * .32) * (1 - depth) ** 1.35
+                * (.7 + .3 * Math.sin(time * .9 + phase));
+            ctx.fillStyle = star % 3 ? color : '#E9EDF3';
+            ctx.beginPath(); ctx.arc(x, y, size / 2, 0, TAU); ctx.fill();
+            if (star % 13 === 0) {
+                ctx.globalAlpha *= .35; ctx.strokeStyle = '#E9EDF3'; ctx.lineWidth = .4;
+                ctx.beginPath(); ctx.moveTo(x - 1.6, y); ctx.lineTo(x + 1.6, y);
+                ctx.moveTo(x, y - 1.6); ctx.lineTo(x, y + 1.6); ctx.stroke();
+            }
+        }
+    }
 }
 
 function paintEdgeStars(ctx, width, height, time, opacity) {
@@ -175,7 +237,12 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
     stairs.segments.slice(0, completed).forEach(segment => profile.push(segment[1]));
     const faceEnd = completed === 24 ? stairs.landing : profile.at(-1);
     profile.push(faceEnd, [faceEnd[0], height], [stairs.start[0], height]);
-    if (completed) { ctx.fillStyle = '#0c100c'; polygon(ctx, profile, true); }
+    if (completed) {
+        ctx.fillStyle = '#0c100c'; polygon(ctx, profile, true);
+        ctx.save(); ctx.clip();
+        paintStairPillars(ctx, stairs, height, completed, time, smooth((time - .6) / .9) * (1 - phase.black));
+        ctx.restore();
+    }
     ctx.restore();
 
     for (let i = 0; i < shards.length; i++) {
@@ -185,10 +252,6 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
         ctx.save();
         ctx.lineWidth = mix(1, stairs.roadWidth, flight.morph);
         if (flight.morph >= 1) {
-            if (!(i % 2)) {
-                ctx.strokeStyle = '#C5D951';
-                path(ctx, segment);
-            }
             ctx.restore(); continue;
         }
         if (flight.progress <= 0) {
@@ -201,18 +264,22 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
         const turn = originalHeading + Math.atan2(Math.sin(flight.heading - originalHeading), Math.cos(flight.heading - originalHeading))
             * smooth(flight.progress / .24);
         const heading = turn + Math.atan2(Math.sin(finalHeading - turn), Math.cos(finalHeading - turn)) * flight.morph;
-        const segmentLength = Math.hypot(segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]) / 2;
         const halfLength = Math.hypot(shard.outline[2][0] - shard.outline[0][0], shard.outline[2][1] - shard.outline[0][1]) / 2;
+        const innerX = (shard.outline[0][0] - origin[0]) * Math.cos(originalHeading)
+            + (shard.outline[0][1] - origin[1]) * Math.sin(originalHeading);
         const tint = smooth(flight.progress);
         ctx.strokeStyle = ctx.fillStyle = `rgb(${Math.round(mix(192,197,tint))},${Math.round(mix(192,217,tint))},${Math.round(mix(192,81,tint))})`;
         const transform = vertices => vertices.map(vertex => {
             const dx = vertex[0] - origin[0], dy = vertex[1] - origin[1];
             const localX = dx * Math.cos(originalHeading) + dy * Math.sin(originalHeading);
             const localY = -dx * Math.sin(originalHeading) + dy * Math.cos(originalHeading);
-            const x = localX * mix(1, segmentLength / (halfLength * 2), flight.morph);
-            const y = localY * (1 - flight.morph) + flight.sway * (localX / halfLength) ** 2 * 7 * (1 - flight.morph);
-            return [flight.position[0] + x * Math.cos(heading) - y * Math.sin(heading),
-                flight.position[1] + x * Math.sin(heading) + y * Math.cos(heading)];
+            const y = localY + flight.sway * (localX / halfLength) ** 2 * 7;
+            const swimming = [flight.position[0] + localX * Math.cos(heading) - y * Math.sin(heading),
+                flight.position[1] + localX * Math.sin(heading) + y * Math.cos(heading)];
+            // Map the actual inner/outer tips onto exact half-edge endpoints, even for asymmetric shards.
+            const along = clamp((localX - innerX) / (halfLength * 2));
+            const settled = pointMix(segment[0], segment[1], ((i % 2 ? 0 : 1) + along) / 2);
+            return pointMix(swimming, settled, flight.morph);
         });
         polygon(ctx, transform(shard.outline));
         ctx.globalAlpha = 1 - flight.morph;
@@ -221,7 +288,7 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
     }
 
     const door = stairs.door;
-    // Fill the doorway before the shared sill/platform stroke, keeping its full thickness visible.
+    // The closed doorway floats above the platform with an equal margin on either side.
     if (phase.door > 0) {
         ctx.save(); ctx.globalAlpha = phase.door;
         ctx.fillStyle = '#000'; ctx.fillRect(door.x, door.y, door.width, door.height);
@@ -230,14 +297,19 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
 
     const landingProgress = smooth((time - (JOURNEY.door - .16)) / .35);
     ctx.save(); ctx.strokeStyle = '#C5D951'; ctx.lineWidth = stairs.roadWidth;
-    path(ctx, [stairs.top, stairs.landing], landingProgress);
+    ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
+    // Stroke the whole settled staircase together so every right-angle corner has one clean join.
+    const settledProfile = [stairs.start, ...stairs.segments.slice(0, completed).map(segment => segment[1])];
+    if (completed === 24 && landingProgress > 0) settledProfile.push(pointMix(stairs.top, stairs.landing, landingProgress));
+    if (completed) path(ctx, settledProfile);
     ctx.restore();
 
     if (phase.door > 0) {
         ctx.save(); ctx.globalAlpha = phase.door;
         ctx.strokeStyle = '#C5D951'; ctx.lineWidth = stairs.roadWidth;
         path(ctx, [[door.x, door.y + door.height], [door.x, door.y],
-            [door.x + door.width, door.y], [door.x + door.width, door.y + door.height]], phase.door);
+            [door.x + door.width, door.y], [door.x + door.width, door.y + door.height],
+            [door.x, door.y + door.height]], phase.door);
         ctx.restore();
     }
 
