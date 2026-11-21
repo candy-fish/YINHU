@@ -9,8 +9,10 @@
     gap: 22px;
     padding: 16px max(22px, env(safe-area-inset-right)) 16px 18px;
     transform: translateY(-50%);
-    pointer-events: auto;
+    pointer-events: none;
 }
+
+.transition-shortcuts.is-open { pointer-events: auto; }
 
 .shortcut-reveal {
     position: absolute;
@@ -21,7 +23,18 @@
     border-radius: 8px;
     background: transparent;
     cursor: pointer;
+    pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
+}
+
+.shortcut-reveal::after {
+    content: "";
+    position: absolute;
+    inset: 0 max(4px, env(safe-area-inset-right)) 0 auto;
+    margin: auto;
+    width: 2px;
+    height: 38px;
+    background: linear-gradient(transparent, #dcccd7aa, transparent);
 }
 
 .shortcut-reveal:focus-visible { outline: 1px solid #dce2eb; outline-offset: -3px; }
@@ -57,19 +70,16 @@
 
 .transition-shortcut:focus-visible { outline: 2px solid #e0e6ee; outline-offset: 5px; }
 .honey-count { fill: #f4f6f9; stroke: none; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 600; }
+.pariten-glyph { font: 700 56px "Noto Serif SC", "Songti SC", SimSun, serif; }
 
 @media (hover: hover) {
     .transition-shortcut:hover { filter: brightness(1.15); }
 }
 
 @media (max-width: 640px), (max-height: 560px) {
-    .transition-shortcuts { padding-inline: 14px max(12px, env(safe-area-inset-right)); gap: 16px; }
+    .transition-shortcuts { padding-inline: 14px max(16px, env(safe-area-inset-right)); gap: 14px; }
     .shortcut-reveal { width: 44px; }
     .transition-shortcut { width: 52px; height: 66px; }
-}
-
-@media (max-height: 560px) {
-    .transition-shortcuts { top: 38%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

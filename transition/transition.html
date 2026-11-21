@@ -121,7 +121,7 @@
     <div id="calendarContainer"></div>
 
     <nav class="transition-shortcuts" aria-label="工具入口">
-        <button class="shortcut-reveal" type="button" aria-label="展开工具入口" aria-expanded="false" aria-controls="counterShortcut"></button>
+        <button class="shortcut-reveal" type="button" aria-label="展开工具入口" aria-expanded="false" aria-controls="counterShortcut paritenShortcut"></button>
         <a id="counterShortcut" class="transition-shortcut" href="counter/counter.html" aria-label="打开计数器" title="计数器">
             <svg viewBox="0 0 108 124" aria-hidden="true" focusable="false">
                 <defs>
@@ -146,6 +146,21 @@
                     <path d="M49 18L51 20M38 30L40 31M30 43L31 43" stroke-width="4.5"/>
                 </g>
                 <text id="honeyCount" class="honey-count" x="56" y="97" text-anchor="middle" font-size="20">0</text>
+            </svg>
+        </a>
+        <a id="paritenShortcut" class="transition-shortcut" href="pariten/index.html" aria-label="打开法国零食从夯到拉" title="法国零食从夯到拉">
+            <svg viewBox="0 0 108 124" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="paritenPearl" x2=".7" y2="1">
+                        <stop stop-color="#fdeddf"/>
+                        <stop offset=".5" stop-color="#e8c9cf"/>
+                        <stop offset="1" stop-color="#b5c1de"/>
+                    </linearGradient>
+                </defs>
+                <path d="M83 28C58 9 20 32 16 65C12 92 36 109 65 99C76 95 85 87 92 77"
+                    fill="none" stroke="url(#paritenPearl)" stroke-width="5" stroke-linecap="round"/>
+                <text x="54" y="82" text-anchor="middle" class="pariten-glyph" fill="url(#paritenPearl)" stroke="url(#paritenPearl)" stroke-width="1" stroke-linejoin="round">颃</text>
+                <path d="m85 18 2.4 4.6L92 25l-4.6 2.4L85 32l-2.4-4.6L78 25l4.6-2.4Z" fill="#fff0db"/>
             </svg>
         </a>
     </nav>
