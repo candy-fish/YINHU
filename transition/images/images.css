@@ -108,6 +108,8 @@
 .road-core{background:#C5D951;box-shadow:0 0 7px #C5D951a6,0 0 24px #C5D95157,0 0 70px #C5D9512b}
 .road-haze{background:linear-gradient(#C5D95124,transparent)}
 .date-marker{color:#C5D951}.date-marker:before{background:#C5D95177}.date-marker:hover{color:#e7f2b5}
+.portal{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.portal:focus-visible{outline-offset:-3px}
 .portal-frame{filter:drop-shadow(0 0 5px #C5D95166)}
 .portal-glass{background:linear-gradient(105deg,#C5D9510c,transparent 42%,#C8EDEF08);box-shadow:inset 8px 0 25px #C5D95108}
 .portal-aura{background:radial-gradient(ellipse,#EBCEE517 10%,#77718f0a 46%,transparent 70%)}
@@ -147,6 +149,3 @@
 .aurora-sky{position:fixed;left:0;right:0;top:0;height:clamp(300px,49vh,480px);pointer-events:none;z-index:0;opacity:.95;mix-blend-mode:screen;-webkit-mask-image:linear-gradient(#000 0 78%,transparent 100%);mask-image:linear-gradient(#000 0 78%,transparent 100%)}
 .aurora-sky canvas{display:block;width:100%;height:100%;filter:blur(.45px) drop-shadow(0 0 8px #BBD7E529)}
 @media(max-width:640px){.aurora-sky{height:260px;opacity:.72}}
-
-.portal{display:block;color:inherit;text-decoration:none;cursor:pointer}
-.portal:focus-visible{outline-offset:-3px}

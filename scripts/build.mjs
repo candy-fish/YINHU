@@ -90,7 +90,8 @@ const simpleFonts = [
   ['cinzel', ['400', '500']],
   ['space-grotesk', ['400', '700']]
 ];
-let fontCss = '';
+// CSS imports must precede @font-face rules or browsers ignore the Chinese fonts.
+let fontCss = '@import url("./noto-serif-sc/400.css");\n@import url("./noto-serif-sc/700.css");\n';
 for (const [family, weights] of simpleFonts) {
   const familyDir = path.join(fontRoot, family);
   await mkdir(familyDir, { recursive: true });
@@ -113,7 +114,6 @@ for (const filename of await readdir(path.join(notoSource, 'files'))) {
     await cp(path.join(notoSource, 'files', filename), path.join(notoTarget, 'files', filename));
   }
 }
-fontCss += '@import url("./noto-serif-sc/400.css");\n@import url("./noto-serif-sc/700.css");\n';
 await writeFile(path.join(fontRoot, 'fonts.css'), fontCss);
 
 const assets = path.join(out, 'assets');
@@ -168,16 +168,16 @@ await build({
 console.log(`BlackDoor ${deployBuild ? 'deployment' : 'local'} build written to ${out}`);
 
 await build({
+  entryPoints: [path.join(root, 'transition/images/travel/travel.js')],
+  outfile: path.join(out, 'transition/images/assets/travel-globe.bundle.js'),
+  bundle: true, format: 'esm', target: 'es2022', minify: true
+});
+
+await build({
   entryPoints: [path.join(root, 'transition/images/images.js')],
   outfile: path.join(out, 'transition/images/images.js'),
   bundle: true, format: 'esm', target: 'es2022', minify: deployBuild,
   // Keep import.meta.url beside the GLBs and textures in assets/. Inlining this
   // renderer into images.js would resolve its relative URLs one directory up.
   external: ['./assets/companions-3d.bundle.js']
-});
-
-await build({
-  entryPoints: [path.join(root, 'transition/images/travel/travel.js')],
-  outfile: path.join(out, 'transition/images/assets/travel-globe.bundle.js'),
-  bundle: true, format: 'esm', target: 'es2022', minify: true
 });

@@ -1,5 +1,6 @@
 import { Color, MathUtils, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, PlaneGeometry, Scene,
   SphereGeometry, SRGBColorSpace, TextureLoader, WebGLRenderer } from 'three';
+import './travel-map.js';
 
 const canvas = document.getElementById('earth');
 const errorMessage = document.getElementById('loadError');
@@ -61,7 +62,8 @@ async function createGlobe() {
   foreground.add(lunarSurface);
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  let diameter = 1, pendingFrame = 0, drag = null, lastTime = null, lastPaint = -Infinity, disposed = false;
+  let diameter = 1, pendingFrame = 0, drag = null, lastTime = null, lastPaint = -Infinity, disposed = false,
+    mapOpen = document.getElementById('travelAtlas').open;
   function animate(time) {
     pendingFrame = 0;
     const dt = lastTime === null ? 0 : Math.min(.05, (time - lastTime) / 1000);
@@ -81,13 +83,13 @@ async function createGlobe() {
     if (!reducedMotion.matches) render();
   }
   function render() {
-    if (pendingFrame || disposed || document.hidden) return;
+    if (pendingFrame || disposed || document.hidden || mapOpen) return;
     pendingFrame = requestAnimationFrame(animate);
   }
   function resize() {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height) return;
-    diameter = Math.min(width * .76, height * .76, 900) * .8;
+    diameter = Math.min(width * .76, height * .76, 900) * .512;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
@@ -136,6 +138,9 @@ async function createGlobe() {
     cancelAnimationFrame(pendingFrame);
     pendingFrame = 0; lastTime = null;
   }
+  document.addEventListener('travel-map-visibility', event => {
+    mapOpen = event.detail; suspend(); if (!mapOpen) render();
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) suspend();
     else render();

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>地图数据与授权 · 映相</title>
+<style>html{color-scheme:dark;background:#080b09;color:#c9d0c7;font:16px/1.8 system-ui,sans-serif}body{max-width:900px;margin:50px auto;padding:0 24px}h1{font-weight:400}h2{margin:36px 0 8px;font-size:20px}p{margin:8px 0}a{color:#c5d951}article{border-top:1px solid #ffffff20;padding:20px 0;overflow-wrap:anywhere}article h2{margin:0}small{color:#8d988d}</style></head>
+<body><a href="travel.html">返回地图</a><h1>地图数据与授权</h1>
+<p>全球省州、海岸和国界来自 <a href="https://www.naturalearthdata.com/">Natural Earth</a>（公共领域）。更细一级的行政区来自 geoBoundaries gbOpen；中国地级市及直辖市区县采用 CTAmap 2.0 的 2026 年快照。</p>
+<p>为网页显示，对原始几何进行了简化、投影，并在绘制时按原省州边界裁剪。每个国家的来源、数据年份和具体授权如下；各国数据文件可在同目录下载，并保留其原始许可。数据不用于确认法律边界。</p>
+<p><a href="https://www.geoboundaries.org/">geoBoundaries / William &amp; Mary geoLab and contributors</a> · <a href="https://www.shengshixian.com/pages/d35ae5/">CTAmap contributors</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+<p id="loading">正在载入来源清单…</p><div id="sources"></div>
+<script type="module">
+const root=document.getElementById('sources');
+try{
+ const response=await fetch('../assets/admin2/sources.json');if(!response.ok)throw new Error('来源清单暂时无法读取。');
+ const sources=await response.json();
+ for(const source of sources){
+  const article=document.createElement('article'),title=document.createElement('h2');title.textContent=source.country+' · '+source.provider;article.append(title);
+  for(const [label,key] of [['原始来源','source'],['数据年份','year'],['许可','license'],['许可说明','licenseDetail']]){
+   if(!source[key])continue;const p=document.createElement('p');p.textContent=label+'：'+source[key];article.append(p);
+  }
+  const link=document.createElement('a');link.href=source.url;link.textContent='原始数据';article.append(link);
+  const local=document.createElement('a');local.href='../assets/admin2/'+source.country+'.json';local.textContent=' · 网页使用的数据';article.append(local);root.append(article);
+ }
+ document.getElementById('loading').remove();
+}catch(error){document.getElementById('loading').textContent=error.message;}
+</script></body></html>

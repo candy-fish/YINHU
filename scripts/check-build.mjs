@@ -55,6 +55,11 @@ const required = [
   'transition/images/assets/travel-globe.bundle.js',
   'transition/images/assets/earth-night-2016.jpg',
   'transition/images/assets/lunar-foreground.png',
+  'transition/images/assets/world-admin1.json',
+  'transition/images/assets/admin2/index.json',
+  'transition/images/assets/admin2/CHN.json',
+  'transition/images/assets/admin2/sources.json',
+  'transition/images/travel/map-sources.html',
   'transition/images/assets/companions-3d.bundle.js',
   'transition/images/assets/aurora-curtains.glb',
   'transition/images/assets/deer-companion.glb',
@@ -64,6 +69,26 @@ const required = [
 ];
 
 for (const file of required) await access(path.join(dist, file));
+
+// A late @import is silently ignored by browsers, leaving Chinese text dependent
+// on fonts installed on each visitor's device.
+const fontRoot = path.join(dist, 'vendor/fonts');
+const fontCss = await readFile(path.join(fontRoot, 'fonts.css'), 'utf8');
+const fontRules = fontCss.replace(/\/\*[\s\S]*?\*\//g, '');
+if (/@import\b/i.test(fontRules.replace(/^(\s*@import\s+[^;]+;)+/i, ''))) {
+  throw new Error('Font CSS imports must precede all font-face rules.');
+}
+for (const weight of ['400', '700']) {
+  const stylesheet = `./noto-serif-sc/${weight}.css`;
+  if (!fontCss.includes(`@import url("${stylesheet}");`)) {
+    throw new Error(`Missing Chinese font import: ${stylesheet}`);
+  }
+  const cssPath = path.join(fontRoot, stylesheet);
+  const css = await readFile(cssPath, 'utf8');
+  for (const match of css.matchAll(/url\(['"]?([^)'"\s]+\.woff2)['"]?\)/g)) {
+    await access(path.resolve(path.dirname(cssPath), match[1]));
+  }
+}
 
 async function walk(directory) {
   const files = [];

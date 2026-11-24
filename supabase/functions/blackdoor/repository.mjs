@@ -54,4 +54,3 @@ export function createRepository({ url, serviceKey, fetcher = fetch }) {
     }
   };
 }
-

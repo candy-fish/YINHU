@@ -51,4 +51,3 @@ grant execute on function public.blackdoor_increment(uuid) to service_role;
 insert into storage.buckets(id, name, public, file_size_limit)
 values ('blackdoor-media', 'blackdoor-media', false, 52428800)
 on conflict (id) do nothing;
-

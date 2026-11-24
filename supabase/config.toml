@@ -5,3 +5,6 @@ project_id = "blackdoor-yinhu"
 # Database and Storage access remain server-side under RLS.
 verify_jwt = false
 
+[functions.travel-colors]
+# Public workspace key is checked inside the function; database access stays server-side.
+verify_jwt = false
