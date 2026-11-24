@@ -129,6 +129,43 @@ function createDisco({ reducedMotion = false } = {}) {
         get handle() { return nodes['canvas-container'].children[1]; } };
 }
 
+test('calendar music cues lift the released ball, drop it again and flash once', () => {
+    const disco = createDisco();
+    let time = 20.9;
+    disco.window.calendarHoverClock = { time: () => time, firstBeat: .128, beatInterval: 60 / 227 };
+    disco.advance(.02);
+    const initial = disco.position();
+    time = 21.02;
+    disco.advance(.02);
+    assert.equal(disco.handle.hidden, false);
+    time = 22.02;
+    disco.advance(.02);
+    assert.equal(disco.handle.hidden, true);
+    time = 26;
+    disco.advance(.02);
+    assert.ok(disco.position().y < initial.y);
+    time = 30;
+    disco.advance(.02);
+    assert.ok(disco.position().y < 0);
+    assert.equal(disco.handle.hidden, true);
+    time = 38.01;
+    disco.advance(.02);
+    assert.equal(disco.handle.hidden, true);
+    time = 39.01;
+    disco.advance(.7);
+    assert.ok(disco.position().y > 0);
+    assert.equal(disco.handle.hidden, false);
+    time = 54;
+    disco.advance(.02);
+    assert.ok(!disco.lightColors.has('rgba(255,238,207'));
+    time = 55;
+    disco.advance(.02);
+    assert.ok(disco.lightColors.has('rgba(255,238,207'));
+    time = 58;
+    disco.advance(.02);
+    assert.ok(!disco.lightColors.has('rgba(255,238,207'));
+});
+
 test('drag follows the pointer, bends the rope and releases into a damped swing without a click', () => {
     const disco = createDisco();
     const initial = disco.position();
@@ -208,8 +245,8 @@ test('mirror facets reflect the environment and the room light fades out with th
     assert.equal(disco.lighting.attributes['aria-hidden'], 'true');
     assert.ok(Number(disco.lighting.style.opacity) > 0.95);
     assert.ok(disco.drawing.some(([x, y]) => x > 1200 && y < 0), 'main light comes from above the upper-right corner');
-    assert.ok(disco.lightColors.has('rgba(255,132,152') && disco.lightColors.has('rgba(118,192,255'),
-        'the reflected fan includes warm and cool spectral colors');
+    assert.ok(disco.lightColors.has('rgba(255,226,185') && disco.lightColors.has('rgba(200,222,244'),
+        'the mirrors reflect both the warm key and cool room light');
     const before = JSON.stringify(disco.drawing);
     const ball = disco.position();
     disco.emit('pointerdown', ball.x, ball.y);

@@ -9,14 +9,28 @@ let monthRings = [];
 // 高速旋转控制
 // ============================================
 
-let fastRingIndex = 0;
-let nextFastRingIndex = 1;
+const idleTurnInterval = 1.15;
+const fastTurnDuration = .18;
+const fastTurnAngle = .82;
+const hoverFadeMs = 350;
+const audioLeadIn = .15;
+// Measured before the added silence used for calibration.
+const firstAudioBeat = .128;
+const audioBeatInterval = 60 / (globalThis.YinhuAudioSync?.bpm.calendar ?? 227);
+const lastAudioBeat = 555;
+const calibrationClock = new URLSearchParams(window.location.search).get('calibration') === 'outer-clock';
+const previewDial = { rotation: 0 };
 
-let fastProgress = 0;
-
-let fastDuration = 1.15;
-
-let overlapTime = 0.10;
+let nextFastRingIndex = 0;
+let nextIdleTurn = 0;
+let fastTurn = null;
+let nextAudioBeat = 0;
+let calendarAudio;
+let audioStart = audioLeadIn;
+let pendingPlayback = null;
+let playingHoverSound = false;
+let iconHovered = false;
+let waitingForAudioGesture = false;
 
 // ============================================
 // 配色 - 适配深色主题
@@ -40,6 +54,7 @@ function setup() {
   canvas.parent('calendarIcon');
   const icon = document.getElementById('calendarIcon');
   icon.addEventListener('click', () => document.dispatchEvent(new CustomEvent('openCalendar')));
+  setupHoverSound(icon);
 
   smooth();
 
@@ -86,6 +101,133 @@ function setup() {
 
 // ============================================
 
+function setupHoverSound(icon) {
+  calendarAudio = new Audio('calendar/hover-beats.mp3');
+  calendarAudio.preload = 'auto';
+  if (!calibrationClock) {
+    window.calendarHoverClock = {
+      firstBeat: firstAudioBeat,
+      beatInterval: audioBeatInterval,
+      time: () => playingHoverSound ? Math.max(0, calendarAudio.currentTime - audioStart) : null
+    };
+  }
+  let fadeFrame = 0;
+
+  function playHoverSound() {
+    if (!iconHovered || pendingPlayback || playingHoverSound) return;
+    waitingForAudioGesture = false;
+    cancelAnimationFrame(fadeFrame);
+    fadeFrame = 0;
+    calendarAudio.volume = .7;
+    audioStart = audioLeadIn - (globalThis.YinhuAudioSync?.read('calendar') ?? 0) / 1000;
+    calendarAudio.currentTime = audioStart;
+    const playback = calendarAudio.play();
+    pendingPlayback = playback;
+    playback.then(() => {
+      if (pendingPlayback !== playback) return;
+      pendingPlayback = null;
+      playingHoverSound = true;
+      nextAudioBeat = 0;
+      fastTurn = null;
+    }).catch(error => {
+      if (pendingPlayback !== playback) return;
+      pendingPlayback = null;
+      waitingForAudioGesture = iconHovered && error.name === 'NotAllowedError';
+    });
+  }
+
+  function stopHoverSound(fade = false) {
+    waitingForAudioGesture = false;
+    if (!playingHoverSound && !pendingPlayback && !fadeFrame) return;
+    const canFade = fade && playingHoverSound && !calendarAudio.paused;
+    if (playingHoverSound) advanceFastTurn(calendarAudio.currentTime - audioStart);
+    playingHoverSound = false;
+    pendingPlayback = null;
+    fastTurn = null;
+    nextIdleTurn = millis() / 1000 + idleTurnInterval;
+    cancelAnimationFrame(fadeFrame);
+    if (!canFade) {
+      fadeFrame = 0;
+      calendarAudio.pause();
+      return;
+    }
+
+    const startedAt = performance.now();
+    const volume = calendarAudio.volume;
+    function fadeStep(now) {
+      const remaining = 1 - Math.max(0, Math.min(1, (now - startedAt) / hoverFadeMs));
+      calendarAudio.volume = volume * remaining;
+      if (remaining > 0) fadeFrame = requestAnimationFrame(fadeStep);
+      else { fadeFrame = 0; calendarAudio.pause(); }
+    }
+    fadeFrame = requestAnimationFrame(fadeStep);
+  }
+
+  function retryAfterGesture() {
+    if (waitingForAudioGesture) playHoverSound();
+  }
+
+  icon.addEventListener('pointerenter', event => {
+    if (event.pointerType !== 'mouse') return;
+    iconHovered = true;
+    playHoverSound();
+  });
+  icon.addEventListener('pointerleave', () => {
+    iconHovered = false;
+    stopHoverSound(true);
+  });
+  document.addEventListener('pointerup', retryAfterGesture);
+  document.addEventListener('keydown', retryAfterGesture);
+  calendarAudio.addEventListener('ended', () => stopHoverSound());
+  calendarAudio.addEventListener('error', () => stopHoverSound());
+  window.addEventListener('pagehide', () => stopHoverSound());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopHoverSound(); });
+  document.getElementById('imagesEntry')?.addEventListener('click', event => {
+    if (event.defaultPrevented) stopHoverSound();
+  });
+}
+
+function beginFastTurn(time, currentMonth) {
+  if (calibrationClock) {
+    fastTurn = { ring: previewDial, start: time, angle: 0 };
+    return;
+  }
+  if (nextFastRingIndex === currentMonth - 1) nextFastRingIndex = (nextFastRingIndex + 1) % monthRings.length;
+  fastTurn = { ring: monthRings[nextFastRingIndex], start: time, angle: 0 };
+  nextFastRingIndex = (nextFastRingIndex + 1) % monthRings.length;
+}
+
+function advanceFastTurn(time) {
+  if (!fastTurn) return;
+  const progress = Math.max(0, Math.min(1, (time - fastTurn.start) / fastTurnDuration));
+  const angle = fastTurnAngle * (1 - (1 - progress) ** 2);
+  fastTurn.ring.rotation += angle - fastTurn.angle;
+  fastTurn.angle = angle;
+  if (progress === 1) fastTurn = null;
+}
+
+function updateFastTurns(currentMonth) {
+  if (playingHoverSound) {
+    const audioTime = calendarAudio.currentTime - audioStart;
+    while (nextAudioBeat <= lastAudioBeat) {
+      const beat = firstAudioBeat + nextAudioBeat * audioBeatInterval;
+      if (beat > audioTime) break;
+      advanceFastTurn(beat);
+      beginFastTurn(beat, currentMonth);
+      nextAudioBeat++;
+    }
+    advanceFastTurn(audioTime);
+    return;
+  }
+
+  const now = millis() / 1000;
+  advanceFastTurn(now);
+  if (!pendingPlayback && now >= nextIdleTurn) {
+    beginFastTurn(now, currentMonth);
+    nextIdleTurn = now + idleTurnInterval;
+  }
+}
+
 function draw() {
 
   clear();
@@ -93,43 +235,22 @@ function draw() {
   let d = day();
   let mo = month();
 
-  // =========================================
-  // 高速圈连续切换
-  // =========================================
-
-  fastProgress += deltaTime / 1000.0;
-
-  let startNext =
-    fastProgress >
-    (fastDuration - overlapTime);
-
-  if (fastProgress >= fastDuration) {
-
-    fastProgress = 0;
-
-    fastRingIndex = nextFastRingIndex;
-
-    nextFastRingIndex++;
-
-    if (nextFastRingIndex >= 12) {
-      nextFastRingIndex = 0;
-    }
-
-    while (nextFastRingIndex === mo - 1) {
-
-      nextFastRingIndex++;
-
-      if (nextFastRingIndex >= 12) {
-        nextFastRingIndex = 0;
-      }
-    }
-  }
+  updateFastTurns(mo);
+  const slowTurn = .24 * Math.min(deltaTime / 1000, .1);
 
   // =========================================
 
   push();
 
   translate(width / 2, height / 2);
+
+  if (calibrationClock) {
+    previewDial.rotation += slowTurn;
+    rotate(previewDial.rotation);
+    drawOuterClock(123);
+    pop();
+    return;
+  }
 
   // =========================================
   // 月份环
@@ -150,13 +271,7 @@ function draw() {
       ring.isCurrentMonth = true;
     }
 
-    let isFast =
-      (i === fastRingIndex);
-
-    let isNextFast =
-      (i === nextFastRingIndex && startNext);
-
-    ring.update(isFast, isNextFast);
+    ring.update(slowTurn);
 
     ring.display();
   }
@@ -198,10 +313,7 @@ class MonthRing {
 
   // =========================================
 
-  update(
-    isFast,
-    isNextFast
-  ) {
+  update(slowTurn) {
 
     if (this.isCurrentMonth) {
 
@@ -212,20 +324,7 @@ class MonthRing {
       return;
     }
 
-    if (isFast) {
-
-      this.rotation += 0.11;
-    }
-
-    else if (isNextFast) {
-
-      this.rotation += 0.08;
-    }
-
-    else {
-
-      this.rotation += 0.004;
-    }
+    this.rotation += slowTurn;
   }
 
   // =========================================
@@ -343,11 +442,10 @@ class MonthRing {
 // 外圈时钟
 // ============================================
 
-function drawOuterClock() {
+function drawOuterClock(numR = 153) {
 
   let outerR = 136;
 
-  let numR = 153;
 
   noFill();
 

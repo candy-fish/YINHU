@@ -1,4 +1,18 @@
 (() => {
+    const frame = window.frameElement;
+    const afterPaint = callback => requestAnimationFrame(() => requestAnimationFrame(callback));
+    if (frame?.classList.contains('images-journey-scene')) {
+        const target = document.createElement('base');
+        target.target = '_top';
+        document.head.append(target);
+        window.BlackDoorImagesArrival = {
+            prepare: frame.dataset.prepare ? Promise.resolve() : new Promise(resolve => frame.addEventListener('images-prepare', resolve, { once: true })),
+            shown: new Promise(resolve => frame.addEventListener('images-visible', resolve, { once: true })),
+            ready: () => afterPaint(() => frame.dispatchEvent(new Event('images-ready'))),
+            fail: () => frame.dispatchEvent(new Event('images-failed'))
+        };
+        return;
+    }
     const key = 'blackdoor.images.arrival.v1';
     let created;
     try {
@@ -18,11 +32,11 @@
             if (revealed) return;
             revealed = true;
             // Models/textures have already rendered; allow the posed scene to paint behind black.
-            requestAnimationFrame(() => requestAnimationFrame(() => {
+            afterPaint(() => {
                 root.classList.add('images-reveal');
                 document.body.inert = false;
                 setTimeout(() => root.classList.remove('images-arriving', 'images-reveal'), 650);
-            }));
+            });
         },
         fail() {
             if (revealed || document.querySelector('.images-load-error')) return;

@@ -2,7 +2,46 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import { ARRIVAL_KEY, JOURNEY, createStairway, orderShards, sampleFlight, journeyPhase, paintJourney } from '../transition/images-journey.js';
+import { ARRIVAL_KEY, JOURNEY, MELODY_CUE, MUSIC_START, VISUAL_DELAY, musicLoopVolume, createStairway, orderShards, sampleFlight, journeyPhase, paintJourney } from '../transition/images-journey.js';
+
+test('accepted audio alignments replace old trial values and allow new adjustments', async () => {
+    const source = await readFile(new URL('../transition/audio-sync.js', import.meta.url), 'utf8');
+    const stored = new Map([['yinhu.audio-sync.stairs', '180'], ['yinhu.audio-sync.calendar', '-42']]);
+    const scope = { localStorage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value) } };
+    vm.runInNewContext(source, scope);
+    const sync = scope.YinhuAudioSync;
+    assert.equal(sync.read('stairs'), -263);
+    assert.equal(sync.read('calendar'), -36);
+    sync.write('stairs', -300);
+    assert.equal(sync.read('stairs'), -263);
+    sync.write('stairs', 0);
+    assert.equal(sync.read('stairs'), 0);
+    sync.write('calendar', 20);
+    assert.equal(sync.read('calendar'), 20);
+});
+
+test('stair edges settle half a beat apart and the first full step lands on the calibrated beat', () => {
+    const firstTread = MUSIC_START + VISUAL_DELAY + JOURNEY.release + JOURNEY.follow + JOURNEY.swim + JOURNEY.melt;
+    const firstStep = firstTread + JOURNEY.pair;
+    const reveal = MELODY_CUE + VISUAL_DELAY;
+    assert.ok(Math.abs(JOURNEY.pair - 30 / 114) < 1e-9);
+    assert.ok(Math.abs(firstTread - 4.4621) < .001);
+    assert.ok(Math.abs(firstStep - 4.7253) < .001);
+    assert.ok(Math.abs(reveal - 12.620) < .001);
+    assert.ok(Math.abs(firstStep + 15 * 60 / 114 - reveal) < 1e-9);
+    assert.ok(MUSIC_START + VISUAL_DELAY + JOURNEY.blackout < reveal);
+});
+
+test('the soundtrack fades to silence at the loop boundary and restores its level after restarting', () => {
+    const duration = 236.2;
+    assert.equal(musicLoopVolume(duration - 2, duration), .6);
+    assert.equal(musicLoopVolume(duration - 1, duration), .3);
+    assert.equal(musicLoopVolume(duration, duration), 0);
+    assert.equal(musicLoopVolume(0, duration), 0);
+    assert.equal(musicLoopVolume(1, duration), .3);
+    assert.equal(musicLoopVolume(2, duration), .6);
+    assert.equal(musicLoopVolume(MUSIC_START, duration), .6);
+});
 
 test('each pair becomes one connected edge and the door stays on-screen across phone and desktop layouts', () => {
     for (const [width, height] of [[320,568], [390,844], [1280,720], [1920,1080], [667,375]]) {

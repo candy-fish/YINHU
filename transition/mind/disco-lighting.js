@@ -164,15 +164,25 @@
             ctx.restore();
         }
 
-        function beam(x, y, targetX, targetY, startWidth, endWidth, color, strength) {
+        function airRay(x, y, targetX, targetY, aperture, spread, color, strength) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(Math.atan2(targetY - y, targetX - x) - Math.PI / 2);
             const length = Math.hypot(targetX - x, targetY - y);
-            // An elongated radial falloff has no polygon edges or visible feathering bands.
-            glow(0, length * 0.48, 1, color, strength,
-                (startWidth + endWidth) * 0.7, length * 0.58);
+            // Light scatters in the air as the reflection widens and loses intensity.
+            for (let i = 0; i < 4; i++) {
+                const fraction = (i + .35) / 4;
+                const distance = fraction * length;
+                const falloff = Math.exp(-distance / height) / (1 + (distance / (height * .7)) ** 2);
+                glow(0, distance, 1, color, strength * falloff,
+                    aperture + spread * fraction, length * .23);
+            }
             ctx.restore();
+        }
+
+        function facetGlint(x, y, size, strength) {
+            glow(x, y, size * 3.6, "255,232,191", strength * .18);
+            glow(x, y, size, "255,253,244", strength);
         }
 
         function star(x, y, size, color, strength) {
@@ -198,7 +208,7 @@
             ctx.restore();
         }
 
-        function update({ visible, x, y, radius, spin, tilt, delta }) {
+        function update({ visible, x, y, radius, spin, tilt, delta, musicTime, beatShimmer = 0 }) {
             const target = visible ? 1 : 0;
             opacity += (target - opacity) * (1 - Math.exp(-delta * (visible ? 2.5 : 4.5)));
             if (Math.abs(opacity - target) < 0.003) opacity = target;
@@ -224,19 +234,25 @@
             const hitY = y - radius * 0.25;
             glow(width * 0.43 + swayX, height * 0.67, width * 0.65, "176,153,116", 0.095, 1, 0.60);
             glow(x - radius, y + radius, width * 0.40, "206,181,145", 0.10, 1.15, 0.85);
-            beam(sourceX, sourceY, hitX, hitY, 34, radius * 0.42, "249,234,206", 0.19);
-            beam(sourceX, sourceY, hitX, hitY, 90, radius * 1.2, "230,219,200", 0.055);
+            airRay(sourceX, sourceY, hitX, hitY, radius * .18, radius * .5, "249,234,206", .18);
             glow(hitX, hitY, radius * 1.3, "249,230,194", 0.14);
 
-            // Broad, overlapping spectral rays read as refracted light instead of neon stripes.
-            const spectrum = ["255,132,152", "255,181,104", "255,226,128", "133,225,177",
-                "118,192,255", "164,147,242", "211,135,238"];
+            // Individual mirrors return narrow reflections of the warm key and cool room light.
+            const reflectedColors = ["255,226,185", "251,239,217", "200,222,244"];
             const distance = Math.hypot(width, height) * 0.95;
-            for (let band = 0; band < spectrum.length; band++) {
-                const angle = 2.37 + band * 0.075 + lightTilt * 0.32 + Math.sin(rotation * 0.12) * 0.025;
-                beam(x - radius * 0.12, y + radius * 0.12,
+            for (let band = 0; band < reflectedColors.length; band++) {
+                const angle = 2.42 + band * .16 + lightTilt * .32 + Math.sin(rotation * .12) * .025;
+                airRay(x - radius * .14, y + radius * .2,
                     x + Math.cos(angle) * distance, y + Math.sin(angle) * distance,
-                    radius * 0.13, distance * 0.045, spectrum[band], 0.12);
+                    radius * .05, distance * .026, reflectedColors[band], .12);
+            }
+
+            const flash = visible && !reduced && musicTime != null ? Math.exp(-((musicTime - 55) ** 2) / .0025) : 0;
+            if (flash > .02) {
+                const facetX = hitX + radius * .13;
+                const facetY = hitY - radius * .12;
+                facetGlint(facetX, facetY, radius * (.09 + .14 * flash), flash * .94);
+                glow(facetX, facetY, radius * 2.4, "255,238,207", flash * .29, 1.3, .76);
             }
 
             // The reflected mirror tiles travel in slow arcs and lean with the pendulum.
@@ -263,8 +279,9 @@
                 const py = sparkle.y * height + Math.sin(lightTime * 0.08 + sparkle.phase) * 7;
                 star(px, py, sparkle.size, sparkle.color, 0.08 + twinkle * 0.60);
             }
-            star(x + radius * 0.72, y - radius * 0.70, 4.5, "245,233,211", 0.55);
-            star(x - radius * 0.82, y + radius * 0.54, 2.8, "204,215,239", 0.30);
+            const facetTurn = Math.sin(rotation * 8) * .18;
+            facetGlint(x + radius * (.48 + facetTurn), y - radius * .55, 4.6, .42 + beatShimmer);
+            glow(x - radius * .59, y + radius * .46, 3.5, "204,215,239", .22 + beatShimmer * .4);
 
             for (const particle of dust) {
                 const px = particle.x * width + Math.sin(lightTime * 0.12 + particle.phase) * 15;

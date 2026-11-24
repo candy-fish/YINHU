@@ -1,13 +1,28 @@
 const TAU = Math.PI * 2;
 export const ARRIVAL_KEY = 'blackdoor.images.arrival.v1';
-const FLIGHT = { pair: .325, follow: .055, release: .15, swim: .285, melt: .105 };
-const stairsReady = FLIGHT.release + 23 * FLIGHT.pair + FLIGHT.follow + FLIGHT.swim + FLIGHT.melt;
+export const MELODY_CUE = 12.120;
+export const VISUAL_DELAY = .5;
+const beat = 60 / (globalThis.YinhuAudioSync?.bpm.stairs ?? 114);
+const firstStep = MELODY_CUE - 15 * beat;
+export const MUSIC_START = firstStep - 2.5 * beat;
+const firstTread = firstStep - MUSIC_START - beat / 2;
+const arrivalFade = .55;
+const musicVolume = .6;
+const loopFade = 2;
+const pair = beat / 2, follow = .045, swim = .230, melt = .085;
+const FLIGHT = { pair, follow, swim, melt, release: firstTread - follow - swim - melt };
+const stairsReady = firstTread + 23 * pair;
 export const JOURNEY = Object.freeze({ ...FLIGHT,
     door: stairsReady + .175, eyes: stairsReady + .925, blackout: stairsReady + 1.475, end: stairsReady + 1.825 });
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
 const mix = (a, b, t) => a + (b - a) * t;
 const pointMix = (a, b, t) => t === 0 ? [...a] : t === 1 ? [...b] : [mix(a[0], b[0], t), mix(a[1], b[1], t)];
+const settledEdges = time => Math.max(0, Math.min(24, Math.floor((time - firstTread) / pair + 1e-9) + 1));
+
+export function musicLoopVolume(time, duration) {
+    return musicVolume * smooth(Math.min(time, duration - time) / loopFade);
+}
 
 export function createStairway(width, height) {
     const portrait = width < height * .85;
@@ -231,8 +246,7 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
     // A quiet side face gives the stair profile depth without filling in the sky.
     ctx.save();
     ctx.globalAlpha = smooth((time - .6) / .5) * .72;
-    const completed = Math.max(0, Math.min(24, Math.floor((time - JOURNEY.release - JOURNEY.follow
-        - JOURNEY.swim - JOURNEY.melt) / JOURNEY.pair) + 1));
+    const completed = settledEdges(time);
     const profile = [stairs.start];
     stairs.segments.slice(0, completed).forEach(segment => profile.push(segment[1]));
     const faceEnd = completed === 24 ? stairs.landing : profile.at(-1);
@@ -347,6 +361,26 @@ export function paintJourney(ctx, width, height, shards, time, reduced = false) 
 
 function installJourney() {
     let active = null;
+    const music = window.Audio ? new window.Audio('images/assets/spring-entrance.mp3') : null;
+    if (music) {
+        music.preload = 'auto';
+        music.loop = true;
+        music.volume = musicVolume;
+        let volumeFrame = 0;
+        const updateVolume = () => {
+            volumeFrame = 0;
+            if (music.paused || !Number.isFinite(music.duration)) return;
+            music.volume = musicLoopVolume(music.currentTime, music.duration);
+            if (music.volume < musicVolume) volumeFrame = requestAnimationFrame(updateVolume);
+        };
+        const checkVolume = () => { if (!volumeFrame) updateVolume(); };
+        music.addEventListener('playing', checkVolume);
+        music.addEventListener('timeupdate', checkVolume);
+    }
+    window.addEventListener('popstate', event => {
+        active?.cleanup();
+        if (event.state?.imagesJourney) window.location.reload();
+    });
     window.BlackDoorImagesJourney = {
         start({ href, shards, onReset }) {
             if (active) return true;
@@ -371,6 +405,33 @@ function installJourney() {
             let width, height, mapped, frame = 0, last = null, painted = -Infinity, elapsed = 0, navigated = false;
             const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
             let reduced = motion.matches;
+            let track = reduced ? null : music;
+            let scene, sceneReady = false, sceneFailed = false, arrived = false, held = false;
+            let audioStarted = false, firstFrame = null, blackSince = null, paintedEdges = 0;
+            const title = document.title;
+            // A positive offset starts earlier in the recording, delaying its beats against the same visual clock.
+            const offset = (globalThis.YinhuAudioSync?.read('stairs') ?? 0) / 1000;
+            const musicStart = MUSIC_START - offset;
+            const revealCue = MELODY_CUE + VISUAL_DELAY - offset;
+
+            if (track) {
+                scene = document.createElement('iframe');
+                scene.src = href;
+                scene.className = 'images-journey-scene';
+                scene.title = '映相';
+                scene.inert = true;
+                scene.addEventListener('images-ready', () => { sceneReady = true; }, { once: true });
+                scene.addEventListener('images-failed', () => { sceneFailed = true; }, { once: true });
+                overlay.prepend(scene);
+            }
+
+            const stopMusic = () => { track?.pause(); track = null; };
+            const playMusic = () => {
+                if (!track || track.ended) return;
+                track.play().then(() => { audioStarted = true; }).catch(error => {
+                    if (error.name !== 'AbortError') stopMusic();
+                });
+            };
 
             const resize = () => {
                 width = innerWidth; height = innerHeight;
@@ -382,36 +443,102 @@ function installJourney() {
             };
             const cleanup = () => {
                 cancelAnimationFrame(frame);
+                stopMusic();
                 window.removeEventListener('resize', resize);
                 window.removeEventListener('pageshow', restore);
+                window.removeEventListener('pagehide', pauseMusic);
                 document.removeEventListener('keydown', keydown);
                 document.removeEventListener('visibilitychange', visible);
                 motion.removeEventListener('change', changeMotion);
                 inert.forEach(([element, value]) => { element.inert = value; });
+                if (arrived) document.title = title;
                 overlay.remove(); active = null; onReset?.();
                 if (focus?.isConnected) focus.focus({ preventScroll: true });
             };
             const finish = () => {
                 if (navigated) return;
                 navigated = true; cancelAnimationFrame(frame);
+                stopMusic();
                 ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height);
                 overlay.classList.add('is-black');
                 try { sessionStorage.setItem(ARRIVAL_KEY, String(Date.now())); } catch { /* Navigation also works without storage. */ }
                 window.location.assign(href);
             };
+            const fade = () => {
+                const progress = track ? smooth((track.currentTime - revealCue) / arrivalFade) : 1;
+                canvas.style.opacity = String(1 - progress);
+                if (progress < 1) frame = requestAnimationFrame(fade);
+                else canvas.remove();
+            };
+            const reveal = () => {
+                try { window.history.pushState({ imagesJourney: true }, '', href); }
+                catch { finish(); return; }
+                arrived = true;
+                document.title = scene.contentDocument.title;
+                overlay.classList.add('is-revealing');
+                overlay.removeAttribute('role'); overlay.removeAttribute('aria-modal'); overlay.removeAttribute('aria-label');
+                scene.inert = false;
+                scene.dispatchEvent(new Event('images-visible'));
+                scene.focus({ preventScroll: true });
+                status.remove();
+                fade();
+            };
             const keydown = event => {
+                if (arrived) return;
                 if (event.key === 'Tab') event.preventDefault();
                 if (event.key === 'Escape') { event.preventDefault(); cleanup(); }
             };
-            const restore = event => { if (event.persisted) cleanup(); };
-            const visible = () => { last = null; };
-            const changeMotion = () => { if (motion.matches) { reduced = true; elapsed = .28; last = null; } };
+            const pauseMusic = () => track?.pause();
+            const restore = event => {
+                if (!event.persisted) return;
+                if (arrived) playMusic(); else cleanup();
+            };
+            const visible = () => {
+                last = null;
+                if (document.hidden) pauseMusic();
+                else if (!held) { firstFrame = null; playMusic(); }
+            };
+            const changeMotion = () => {
+                if (!arrived && motion.matches) { stopMusic(); reduced = true; elapsed = .28; last = null; }
+            };
             const animate = now => {
-                if (navigated) return;
-                if (!document.hidden && last !== null) elapsed += Math.max(0, (now - last) / 1000);
+                if (navigated || arrived) return;
+                firstFrame ??= now;
+                if (track && !audioStarted && now - firstFrame > 2500) stopMusic();
+                if (track && audioStarted) elapsed = Math.max(0, track.currentTime - musicStart - VISUAL_DELAY);
+                else if (!track && !document.hidden && last !== null) elapsed += Math.max(0, (now - last) / 1000);
                 last = now;
-                if (now - painted < 1000 / 30) { frame = requestAnimationFrame(animate); return; }
+                const black = !reduced && elapsed >= JOURNEY.blackout;
+                if (track && elapsed >= JOURNEY.door && !scene.dataset.prepare) {
+                    // The browser can fetch the assets during the steps. Leave GPU setup until the door.
+                    scene.dataset.prepare = 'true';
+                    scene.dispatchEvent(new Event('images-prepare'));
+                }
+                if (track && black) {
+                    if (overlay.dataset.phase !== 'blackout') {
+                        overlay.dataset.phase = 'blackout';
+                        status.textContent = '正在进入映相';
+                        overlay.classList.add('is-black');
+                    }
+                    if (sceneFailed) { finish(); return; }
+                    if (!sceneReady) {
+                        // Leave the last fraction of a second before the melody for the painted scene.
+                        if (!held) { pauseMusic(); held = true; blackSince = now; }
+                        if (now - blackSince > 20000) { finish(); return; }
+                    } else if (held && !document.hidden) {
+                        held = false;
+                        playMusic();
+                    } else if (!document.hidden && track.currentTime >= revealCue) {
+                        reveal(); return;
+                    }
+                    frame = requestAnimationFrame(animate); return;
+                }
+                const edges = settledEdges(elapsed);
+                if (now - painted < 1000 / 30 && edges === paintedEdges && (!black || overlay.dataset.phase === 'blackout')) {
+                    frame = requestAnimationFrame(animate); return;
+                }
                 painted = now;
+                paintedEdges = edges;
                 try {
                     const phase = paintJourney(ctx, width, height, mapped, elapsed, reduced);
                     const stage = phase.black > 0 ? 'blackout' : !reduced && elapsed >= JOURNEY.eyes
@@ -422,7 +549,7 @@ function installJourney() {
                         if (stage === 'blackout') status.textContent = '正在进入映相';
                     }
                     overlay.classList.toggle('is-black', phase.black >= 1);
-                    if (phase.done) { finish(); return; }
+                    if (phase.done && !track) { finish(); return; }
                 } catch { finish(); return; }
                 frame = requestAnimationFrame(animate);
             };
@@ -434,9 +561,15 @@ function installJourney() {
             document.addEventListener('visibilitychange', visible);
             window.addEventListener('resize', resize);
             window.addEventListener('pageshow', restore);
+            window.addEventListener('pagehide', pauseMusic);
             motion.addEventListener('change', changeMotion);
             overlay.focus({ preventScroll: true });
             paintJourney(ctx, width, height, mapped, 0, reduced);
+            if (track) {
+                track.volume = musicVolume;
+                track.currentTime = musicStart;
+                playMusic();
+            }
             frame = requestAnimationFrame(animate);
             return true;
         }

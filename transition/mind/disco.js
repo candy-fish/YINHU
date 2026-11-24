@@ -9,6 +9,7 @@
         DRAGGING: "dragging",
         ENTERING: "entering",
         RETRACTING: "retracting",
+        RISING: "rising",
         ERROR: "error"
     });
 
@@ -18,6 +19,9 @@
     const CONSTRAINT_ITERATIONS = 7;
     const MAX_STEPS_PER_FRAME = 8;
     const DRAG_THRESHOLD = 6;
+    const RISE_START = 22;
+    const RISE_END = 30;
+    const DROP_CUE = 39;
 
     const container = document.getElementById("canvas-container");
     const ropeSvg = document.getElementById("discoRope");
@@ -43,6 +47,10 @@
     let pointerInHotspot = false;
     let lastPointer = null;
     let retractElapsed = 0;
+    let previousMusicTime = null;
+    let musicRise = null;
+    let dropOnCue = false;
+    let beatShimmer = 0;
     let accumulator = 0;
     let previousTime = performance.now();
     let spinAngle = 0;
@@ -293,6 +301,58 @@
         }
     }
 
+    function updateMusicChoreography() {
+        const clock = window.calendarHoverClock;
+        const time = clock?.time() ?? null;
+        const previous = previousMusicTime ?? 0;
+        previousMusicTime = time;
+        beatShimmer = 0;
+
+        if (time === null || time < previous - .5) {
+            dropOnCue = false;
+            if (state === STATE.RISING) {
+                state = STATE.RELEASED;
+                musicRise = null;
+                ball.vx = ball.vy = 0;
+            }
+            return;
+        }
+
+        if (previous < RISE_START && time >= RISE_START && time < RISE_END && state === STATE.RELEASED) {
+            musicRise = { x: ball.x - anchor.x, y: ball.y, seed: Math.random() * 1000 };
+            state = STATE.RISING;
+            document.documentElement.classList.remove("is-over-disco-ball");
+        }
+        if (state === STATE.RISING) {
+            if (time >= RISE_END) {
+                musicRise = null;
+                resetToArmed();
+            } else {
+                const progress = clamp((time - RISE_START) / (RISE_END - RISE_START), 0, 1);
+                const ease = progress * progress * (3 - 2 * progress);
+                const hidden = hiddenBallPosition();
+                const phase = (time - clock.firstBeat) / clock.beatInterval;
+                const beat = Math.floor(phase);
+                const fraction = phase - beat;
+                const hop = Math.sin(fraction * Math.PI);
+                const randomX = index => {
+                    const value = Math.sin(index * 39.73 + musicRise.seed) * 43758.5453;
+                    return 2 * (value - Math.floor(value)) - 1;
+                };
+                const side = randomX(beat - 1) * (1 - fraction) + randomX(beat) * fraction;
+                const strength = reducedMotionQuery.matches ? 0 : Math.min(progress * 20, 1 - ease);
+                ball.x = anchor.x + musicRise.x * (1 - ease) + (hidden.x - anchor.x) * ease + side * ballRadius * .72 * strength;
+                ball.y = musicRise.y * (1 - ease) + hidden.y * ease - hop * ballRadius * .52 * strength;
+                ball.vx = ball.vy = 0;
+                beatShimmer = hop ** 4 * strength * .2;
+            }
+        }
+
+        if (previous <= DROP_CUE && time > DROP_CUE) dropOnCue = true;
+        if (dropOnCue && state === STATE.ARMED) releaseBall();
+        if (state === STATE.RELEASED) dropOnCue = false;
+    }
+
     function pinRopeEnds() {
         if (!ropePoints.length) return;
         const end = ballAttachment();
@@ -412,7 +472,9 @@
             radius: ballRadius,
             spin: spinAngle,
             tilt: ballCarrier.rotation.z,
-            delta: frameDelta
+            delta: frameDelta,
+            musicTime: previousMusicTime,
+            beatShimmer
         });
     }
 
@@ -658,14 +720,15 @@
         if (state === STATE.ENTERING) { previousTime = timestamp; return; }
         const frameDelta = Math.min((timestamp - previousTime) / 1000, MAX_FRAME_TIME);
         previousTime = timestamp;
+        updateMusicChoreography();
 
-        if (state === STATE.RELEASED || state === STATE.DRAGGING || state === STATE.RETRACTING) {
+        if (state === STATE.RELEASED || state === STATE.DRAGGING || state === STATE.RETRACTING || state === STATE.RISING) {
             accumulator += frameDelta;
             let steps = 0;
             while (accumulator >= FIXED_STEP && steps < MAX_STEPS_PER_FRAME) {
                 if (state === STATE.RELEASED) stepReleased(FIXED_STEP);
                 if (state === STATE.RETRACTING) stepRetracting(FIXED_STEP);
-                if (state === STATE.RELEASED || state === STATE.DRAGGING || state === STATE.RETRACTING) stepRope(FIXED_STEP);
+                if (state !== STATE.ARMED) stepRope(FIXED_STEP);
                 accumulator -= FIXED_STEP;
                 steps += 1;
             }

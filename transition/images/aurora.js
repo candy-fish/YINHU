@@ -68,7 +68,7 @@ export function createAurora(canvas, reducedMotion) {
   const stars = createNightStars(document.getElementById('nightStars'), reducedMotion);
   let engine = null;
   canvas.dataset.renderer = 'loading-blender';
-  import('./assets/companions-3d.bundle.js')
+  const ready = import('./assets/companions-3d.bundle.js')
     .then(module => module.createAuroraScene(canvas, reducedMotion))
     .then(renderer => { engine = renderer; })
     .catch(error => {
@@ -77,7 +77,7 @@ export function createAurora(canvas, reducedMotion) {
       try { engine = createCurtain(fallback, reducedMotion); }
       catch { fallback.dataset.renderer = 'unavailable'; }
     });
-  return { draw(time) { stars.draw(time); engine?.draw(time); } };
+  return { ready, draw(time) { stars.draw(time); engine?.draw(time); } };
 }
 
 function createCurtain(canvas, reducedMotion) {

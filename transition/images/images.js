@@ -5,6 +5,8 @@ import { getWindowFrame, layoutWindows, rectangleFromPoints } from './window-lay
 import { createCompanions } from './companions.js';
 import { createEdgeStars } from './edge-stars.js';
 
+const arrival = window.BlackDoorImagesArrival;
+if (arrival?.prepare) await arrival.prepare;
 createEdgeStars();
 
 const $ = id => document.getElementById(id);
@@ -14,6 +16,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const cosmos = createCosmos($('cosmos'), reducedMotion);
 const aurora = createAurora($('aurora'), reducedMotion);
 const companions = createCompanions($('companions'), reducedMotion);
+let sceneVisible = !arrival?.shown;
 
 let records = [], displayed = [], layouts = [], objectURLs = [];
 let camera = 0, targetCamera = 0, maxCamera = 0, scale = 1, verticalOffset = 0, worldWidth = 2450;
@@ -223,7 +226,18 @@ for (const event of ['change', 'pointerup', 'pointercancel', 'lostpointercapture
 }
 window.addEventListener('resize', resize);
 window.addEventListener('blur', stopHover);
-document.addEventListener('visibilitychange', () => { stopHover(); if (document.hidden) { cancelAnimationFrame(frameID); frameID = null; } else if (frameID === null) { lastTime = 0; companions.reset(); frameID = requestAnimationFrame(tick); } });
+function startSceneClock() {
+  if (!sceneVisible || document.hidden || frameID !== null) return;
+  lastTime = 0;
+  companions.reset();
+  frameID = requestAnimationFrame(tick);
+}
+
+document.addEventListener('visibilitychange', () => {
+  stopHover();
+  if (document.hidden) { cancelAnimationFrame(frameID); frameID = null; }
+  else startSceneClock();
+});
 
 function finishDrawingMode(keepPreview = false) {
   drawing = false; drawingAnchor = null; drawingPointer = null; drawingRectangle = null;
@@ -385,15 +399,17 @@ $('confirmDelete').addEventListener('click', async () => {
 });
 window.addEventListener('focus', () => { if (!drawing && !editor.open && !detail.open) refresh(lastSavedID); });
 // Lay out and animate independently of record loading; only the fully rendered animals open the curtain.
-renderWindows(); frameID = requestAnimationFrame(tick);
+renderWindows(); startSceneClock();
+arrival?.shown?.then(() => { sceneVisible = true; startSceneClock(); });
 void refresh();
-companions.ready.then(() => {
+Promise.all([companions.ready, !sceneVisible && aurora.ready]).then(() => {
+  if (!sceneVisible) { cosmos.draw(performance.now()); aurora.draw(performance.now()); }
   companions.reset();
   companions.update({ camera, scale, width: scene.clientWidth, dt: 0, paused: false, interacting: false });
-  window.BlackDoorImagesArrival?.ready();
+  arrival?.ready();
 }).catch(error => {
   console.warn('Companion models could not load:', error);
-  window.BlackDoorImagesArrival?.fail();
+  arrival?.fail();
 });
 
 if (globalThis.BLACKDOOR_CONFIG?.shared) {

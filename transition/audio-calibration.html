@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111713">
+    <title>节拍校准 · 银壶</title>
+    <link rel="stylesheet" href="audio-calibration.css">
+    <script src="audio-sync.js" defer></script>
+    <script src="audio-calibration.js" defer></script>
+</head>
+<body>
+    <header class="masthead">
+        <div>
+            <h1>节拍校准</h1>
+            <p>拖动滑杆，将音乐提前或延后最多半拍。调整在下一次起播时生效。</p>
+        </div>
+        <a class="button" href="transition.html">回到主界面</a>
+    </header>
+    <main>
+        <section class="settings" aria-label="音乐位置">
+            <div class="track" data-track="stairs">
+                <div class="track-heading">
+                    <label for="stairs-offset">映相楼梯</label>
+                    <output for="stairs-offset">0 ms</output>
+                </div>
+                <input type="range" id="stairs-offset" step="1" value="0">
+                <div class="scale" aria-hidden="true"><span>提前</span><span>0</span><span>延后</span></div>
+                <div class="track-actions">
+                    <p class="track-tempo"></p>
+                    <button type="button" class="reset">归零</button>
+                </div>
+            </div>
+            <div class="track" data-track="calendar">
+                <div class="track-heading">
+                    <label for="calendar-offset">日历时钟</label>
+                    <output for="calendar-offset">0 ms</output>
+                </div>
+                <input type="range" id="calendar-offset" step="1" value="0">
+                <div class="scale" aria-hidden="true"><span>提前</span><span>0</span><span>延后</span></div>
+                <div class="track-actions">
+                    <p class="track-tempo"></p>
+                    <button type="button" class="reset">归零</button>
+                </div>
+            </div>
+            <p id="save-status" class="save-status" role="status">设置保存在当前浏览器</p>
+        </section>
+        <section class="preview" aria-labelledby="preview-title">
+            <div class="preview-heading">
+                <div>
+                    <h2 id="preview-title">入口预览</h2>
+                    <p>点击左下角的万花筒，或悬停在右下角的日历时钟上。</p>
+                </div>
+                <button type="button" class="button" id="reset-preview">重新加载</button>
+            </div>
+            <iframe id="preview" src="transition.html?calibration=outer-clock" title="银壶入口" allow="autoplay"></iframe>
+        </section>
+    </main>
+</body>
+</html>
