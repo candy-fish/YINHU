@@ -128,6 +128,8 @@
         };
         const palette = ["255,221,158", "245,226,188", "239,211,164", "200,222,244",
             "238,194,215", "185,219,202", "205,192,240"];
+        const spectrum = ["255,132,152", "255,181,104", "255,226,128", "133,225,177",
+            "118,192,255", "164,147,242", "211,135,238"];
         const reflections = Array.from({ length: 155 }, () => ({
             x: random(), y: random(), phase: random() * Math.PI * 2,
             size: 2 + Math.pow(random(), 1.8) * 10, stretch: 0.45 + random() * 0.85,
@@ -176,6 +178,26 @@
                 const falloff = Math.exp(-distance / height) / (1 + (distance / (height * .7)) ** 2);
                 glow(0, distance, 1, color, strength * falloff,
                     aperture + spread * fraction, length * .23);
+            }
+            ctx.restore();
+        }
+
+        function drawRainbow(x, y, radius, rotation, tilt) {
+            const originX = x - radius * .12;
+            const originY = y + radius * .12;
+            const reach = Math.hypot(width, height) * .95;
+            ctx.save();
+            ctx.translate(originX, originY);
+            for (let band = 0; band < spectrum.length; band++) {
+                const angle = 2.37 + band * .075 + tilt * .32 + Math.sin(rotation * .12) * .025;
+                const dx = x + Math.cos(angle) * reach - originX;
+                const dy = y + Math.sin(angle) * reach - originY;
+                const length = Math.hypot(dx, dy);
+                ctx.save();
+                ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2);
+                glow(0, length * .48, 1, spectrum[band], .12,
+                    (radius * .13 + reach * .045) * .7, length * .58);
+                ctx.restore();
             }
             ctx.restore();
         }
@@ -237,15 +259,7 @@
             airRay(sourceX, sourceY, hitX, hitY, radius * .18, radius * .5, "249,234,206", .18);
             glow(hitX, hitY, radius * 1.3, "249,230,194", 0.14);
 
-            // Individual mirrors return narrow reflections of the warm key and cool room light.
-            const reflectedColors = ["255,226,185", "251,239,217", "200,222,244"];
-            const distance = Math.hypot(width, height) * 0.95;
-            for (let band = 0; band < reflectedColors.length; band++) {
-                const angle = 2.42 + band * .16 + lightTilt * .32 + Math.sin(rotation * .12) * .025;
-                airRay(x - radius * .14, y + radius * .2,
-                    x + Math.cos(angle) * distance, y + Math.sin(angle) * distance,
-                    radius * .05, distance * .026, reflectedColors[band], .12);
-            }
+            drawRainbow(x, y, radius, rotation, lightTilt);
 
             const flash = visible && !reduced && musicTime != null ? Math.exp(-((musicTime - 55) ** 2) / .0025) : 0;
             if (flash > .02) {

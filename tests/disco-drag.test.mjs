@@ -245,8 +245,9 @@ test('mirror facets reflect the environment and the room light fades out with th
     assert.equal(disco.lighting.attributes['aria-hidden'], 'true');
     assert.ok(Number(disco.lighting.style.opacity) > 0.95);
     assert.ok(disco.drawing.some(([x, y]) => x > 1200 && y < 0), 'main light comes from above the upper-right corner');
-    assert.ok(disco.lightColors.has('rgba(255,226,185') && disco.lightColors.has('rgba(200,222,244'),
-        'the mirrors reflect both the warm key and cool room light');
+    const rainbow = ['255,132,152', '255,181,104', '255,226,128', '133,225,177', '118,192,255', '164,147,242', '211,135,238'];
+    assert.ok(rainbow.every(color => disco.lightColors.has(`rgba(${color}`)),
+        'the rainbow is visible during normal lighting without a music cue');
     const before = JSON.stringify(disco.drawing);
     const ball = disco.position();
     disco.emit('pointerdown', ball.x, ball.y);
