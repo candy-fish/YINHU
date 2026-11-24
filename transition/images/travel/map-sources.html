@@ -6,6 +6,13 @@
 <p>全球省州、海岸和国界来自 <a href="https://www.naturalearthdata.com/">Natural Earth</a>（公共领域）。更细一级的行政区来自 geoBoundaries gbOpen；中国地级市及直辖市区县采用 CTAmap 2.0 的 2026 年快照。</p>
 <p>为网页显示，对原始几何进行了简化、投影，并在绘制时按原省州边界裁剪。每个国家的来源、数据年份和具体授权如下；各国数据文件可在同目录下载，并保留其原始许可。数据不用于确认法律边界。</p>
 <p><a href="https://www.geoboundaries.org/">geoBoundaries / William &amp; Mary geoLab and contributors</a> · <a href="https://www.shengshixian.com/pages/d35ae5/">CTAmap contributors</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+<h2>地理图层</h2>
+<ul>
+  <li>气候分布采用 1991–2020 年柯本–盖格气候数据，按 30 个子类重新配色。<a href="https://www.nature.com/articles/s41597-023-02549-6">Beck 等（2023）</a> · <a href="https://data.naturalcapitalalliance.stanford.edu/download/global/koppen_geiger_climatezones/koppen_geiger_climatezones_1991_2020_1km.tif">Stanford NatCap GeoTIFF</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></li>
+  <li>地形采用全球陆地和海底高程，并叠加等比经纬度网格上的晕渲。<a href="https://www.generic-mapping-tools.org/remote-datasets/earth-relief.html">GMT Earth Relief</a> · <a href="https://generic-mapping-tools.iag.usp.br/gmt/data/earth_relief_10m.grd">10′ 网格</a></li>
+  <li>等温线和等降水量线从 1991–2020 年月气候平均值计算，经平滑后生成全球等值线。<a href="https://psl.noaa.gov/data/gridded/data.ncep.reanalysis.html">NOAA PSL NCEP/NCAR Reanalysis 1</a> · <a href="https://downloads.psl.noaa.gov/Datasets/ncep.reanalysis.derived/surface_gauss/air.2m.mon.ltm.1991-2020.nc">气温</a> · <a href="https://downloads.psl.noaa.gov/Datasets/ncep.reanalysis.derived/surface_gauss/prate.sfc.mon.ltm.1991-2020.nc">降水率</a></li>
+  <li>河流与湖泊来自 Natural Earth 1:50m 数据。<a href="https://www.naturalearthdata.com/downloads/50m-physical-vectors/">Natural Earth</a> · <a href="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_rivers_lake_centerlines.geojson">河流</a> · <a href="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_lakes.geojson">湖泊</a></li>
+</ul>
 <p id="loading">正在载入来源清单…</p><div id="sources"></div>
 <script type="module">
 const root=document.getElementById('sources');

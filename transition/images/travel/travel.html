@@ -21,15 +21,37 @@
   </main>
   <dialog id="travelAtlas" aria-label="旅行涂色地图">
     <button id="closeAtlas" class="gallery-return" aria-label="返回地球"><svg viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect x="3" y="3" width="30" height="30"/><rect x="12" y="12" width="12" height="12"/></svg></button>
-    <section id="locationInfo" class="location-info" aria-label="地点信息" hidden><p id="locationCountry"></p><p id="locationParent" hidden></p><h2 id="regionName"></h2><p id="locationCoordinates"></p></section>
     <div id="mapViewport" class="map-viewport" tabindex="0" aria-label="全球行政区划图，可拖动平移，滚轮或双指缩放，方向键移动，加减键缩放">
-      <svg id="adminMap" viewBox="0 0 1080 540" aria-label="可涂色的行政区划图"><defs id="subregionClips"></defs><g id="mapRegions"></g><g id="mapSubregions"></g><g id="mapContours" aria-hidden="true" pointer-events="none"></g></svg>
+      <svg id="adminMap" viewBox="0 0 1080 540" aria-label="可涂色的行政区划图">
+        <defs id="subregionClips"></defs>
+        <g id="mapSurface" aria-hidden="true" pointer-events="none"></g>
+        <g id="mapRegions"></g><g id="mapSubregions"></g>
+        <g id="mapContours" aria-hidden="true" pointer-events="none"></g>
+        <g id="mapOverlays" aria-hidden="true" pointer-events="none"></g>
+      </svg>
     </div>
-    <div class="atlas-footer"><p id="mapStatus" role="status" aria-live="polite">正在载入地图…</p></div>
+    <aside class="atlas-sidebar">
+    <div class="location-slot">
+      <section id="locationInfo" class="location-info" aria-label="地点信息" hidden><p id="locationCountry"></p><p id="locationParent" hidden></p><h2 id="regionName"></h2><p id="locationCoordinates"></p></section>
+    </div>
     <section class="color-display" aria-label="当前颜色">
       <div id="colorPreview" aria-hidden="true"></div>
       <div class="color-code"><input id="colorHex" type="text" maxlength="7" spellcheck="false" autocomplete="off" aria-label="十六进制颜色"><button id="eraseColor" class="erase-color" type="button" aria-label="清除颜色" aria-pressed="false" title="清除颜色"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 14 8-10a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-8 9H9l-5-5a2 2 0 0 1 0-2Z M8 9l8 8M12 21h9"/></svg></button></div>
     </section>
+    <div class="layer-panel">
+      <div id="layerButtons" class="layer-buttons" role="group" aria-label="地图图层">
+        <button type="button" data-layer="climate" aria-label="气候分布" title="气候分布" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m2 6 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M2 14l8 4 8-4"/></svg></button>
+        <button type="button" data-layer="relief" aria-label="地形" title="地形" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1.5 16 8 5l4 7 2.5-4 4 8h-17ZM6 8.5l2 2 2-2"/></svg></button>
+        <button type="button" data-layer="temperature" aria-label="等温线" title="等温线" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 12.5V4a2 2 0 0 1 4 0v8.5a3.6 3.6 0 1 1-4 0Zm2 2V8m4 0h2m-2-4h2"/></svg></button>
+        <button type="button" data-layer="rainfall" aria-label="等降水量线" title="等降水量线" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15 11a3 3 0 0 0 0-6 4.8 4.8 0 0 0-8.8 1 2.5 2.5 0 1 0-1 5H15ZM6 14l-1 2m5-2-1.5 3m5.5-3-1 2"/></svg></button>
+        <button type="button" data-layer="rivers" aria-label="河流湖泊" title="河流湖泊" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5c4-5 5 5 9 1s6-3 7-1M2 10c4-5 5 5 9 1s6-3 7-1M2 15c4-5 5 5 9 1s6-3 7-1"/></svg></button>
+        <button type="button" data-layer="graticule" aria-label="经纬网" title="经纬网" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><ellipse cx="10" cy="10" rx="3.5" ry="7.5"/><path d="M2.5 10h15M4 5.7h12M4 14.3h12"/></svg></button>
+      </div>
+      <p id="layerStatus" role="status"></p>
+      <div id="mapLegend" class="map-legend" aria-label="地图图例" hidden></div>
+    </div>
+    <div class="atlas-footer"><p id="mapStatus" role="status" aria-live="polite">正在载入地图…</p></div>
+    </aside>
     <div id="paintPalette" class="paint-palette" role="group" aria-label="主色与灰度">
       <div class="color-strip gray-strip"><div id="grayBlocks" class="strip-blocks" aria-hidden="true"></div><div class="strip-gradient" aria-hidden="true"></div><input id="colorGray" type="range" min="0" max="100" step="0.1" aria-label="灰度与明暗" disabled></div>
       <div class="color-strip saturation-strip"><div id="saturationBlocks" class="strip-blocks" aria-hidden="true"></div><div class="strip-gradient" aria-hidden="true"></div><input id="colorSaturation" type="range" min="0" max="100" step="0.1" aria-label="饱和度" disabled></div>
@@ -37,7 +59,6 @@
     </div>
     <button id="drawMap" class="draw-button" aria-label="绘制" title="绘制" aria-pressed="false" aria-controls="paintPalette"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 4 6 6M5 15 17 3a2.8 2.8 0 0 1 4 4L9 19l-6 2 2-6Z"/></svg></button>
     <div class="map-zoom" role="group" aria-label="地图缩放"><button id="zoomIn" aria-label="放大地图">＋</button><button id="zoomOut" aria-label="缩小地图">−</button><button id="resetMap" aria-label="显示完整地图" title="显示完整地图">⌖</button></div>
-    <a class="map-data-credit" href="map-sources.html" target="_blank" rel="noopener">地图数据 · geoBoundaries / CTAmap</a>
   </dialog>
 </body>
 </html>

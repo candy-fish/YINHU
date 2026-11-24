@@ -2,11 +2,14 @@ import { createTravelStore } from './travel-store.js';
 import { setupColorPicker } from './color-picker.js';
 import { mapCoordinates,formatCoordinates } from './map-location.js';
 import { createAdminDetail } from './admin-detail.js';
+import { setupMapLayers } from './map-layers.js';
 
 const $ = id => document.getElementById(id);
 const dialog = $('travelAtlas'), viewport = $('mapViewport'), svg = $('adminMap');
 const group = $('mapRegions'), status = $('mapStatus'), regionName = $('regionName');
 const drawButton = $('drawMap');
+setupMapLayers({ svg, surface: $('mapSurface'), overlays: $('mapOverlays'),
+  controls: $('layerButtons'), legend: $('mapLegend'), status: $('layerStatus') });
 const store = createTravelStore();
 const regions = new Map(), rows = new Map(), pending = new Map();
 let selected = '#d4df8b', drawing = false, cloudReady = false, fetching = false;
@@ -57,15 +60,16 @@ function registerRegion(region) {
   return path;
 }
 function transform() {
-  const limitX = viewport.clientWidth * (scale - 1) / 2, limitY = viewport.clientHeight * (scale - 1) / 2;
-  panX = Math.max(-limitX, Math.min(limitX, panX)); panY = Math.max(-limitY, Math.min(limitY, panY));
   const width = viewport.clientWidth, height = viewport.clientHeight;
   if (!width || !height) return;
+  const limitX = width * (scale - 1) / 2, limitY = height * (scale - 1) / 2;
+  panX = Math.max(-limitX, Math.min(limitX, panX)); panY = Math.max(-limitY, Math.min(limitY, panY));
   const units = Math.max(1080 / width, 540 / height) / scale;
   // Changing the vector viewBox rerenders outlines at the display resolution.
   // CSS scale/will-change would reuse a rasterized layer and blur it at high zoom.
   const x=(1080-width*units)/2-panX*units,y=(540-height*units)/2-panY*units,w=width*units,h=height*units;
   svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+  svg.style.setProperty('--map-unit', units);
   adminDetail.update(scale,[x,y,x+w,y+h]);
   $('zoomOut').disabled = scale <= 1; $('zoomIn').disabled = scale >= 32;
 }
@@ -225,4 +229,4 @@ dialog.addEventListener('close', () => {
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 window.addEventListener('focus', refresh);
-window.addEventListener('resize', transform);
+new ResizeObserver(transform).observe(viewport);
