@@ -22,7 +22,7 @@ export function createLunarCompanions(outline, reducedMotion, loadRenderer) {
 
   function resize() {
     width = outline.clientWidth;
-    scale = Math.max(.38, Math.min(.94, frame.offsetHeight / 215));
+    scale = .85 * Math.max(.38, Math.min(.94, frame.offsetHeight / 215));
     const clearance = Math.min(100 * scale, (width - frame.offsetWidth) / 3);
     start = frame.offsetWidth + clearance;
     span = Math.max(0, width - clearance - start);
