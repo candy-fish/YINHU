@@ -6,8 +6,44 @@ html.cover-locked body {
     cursor: default;
 }
 
-.cover-locked body > :not(.login) {
+.cover-locked body > :not(.login, .login-water),
+html:not(.cover-locked) .login-water {
     display: none !important;
+}
+
+.login-water {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    overflow: hidden;
+    pointer-events: none;
+    background-color: #0a0a0a;
+    background-image:
+        radial-gradient(ellipse at 50% 49%, #070707 0%, transparent 51%),
+        radial-gradient(ellipse at 98% 73%, #1a1a1a 0%, transparent 52%),
+        radial-gradient(ellipse at 2% 10%, #151515 0%, transparent 48%);
+}
+
+.login-water::before {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background-image:
+        linear-gradient(90deg, #cacaca1b 1px, transparent 1px),
+        linear-gradient(#cacaca1b 1px, transparent 1px),
+        linear-gradient(90deg, #cacaca0a 1px, transparent 1px),
+        linear-gradient(#cacaca0a 1px, transparent 1px);
+    background-position: center;
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+    opacity: .44;
+}
+
+.login-water canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    mask-image: radial-gradient(ellipse 38% 29% at center, #0001 0%, #0008 45%, #000 100%);
 }
 
 .login {
@@ -18,7 +54,6 @@ html.cover-locked body {
     place-items: center;
     margin: 0;
     padding: 24px;
-    background: #000;
 }
 
 .login-input {
@@ -50,6 +85,12 @@ html.cover-locked body {
 
 .login-input::-ms-reveal {
     display: none;
+}
+
+@media (max-width: 640px) {
+    .login-water canvas {
+        mask-image: radial-gradient(ellipse 68% 25% at center, #0001 0%, #0008 45%, #000 100%);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

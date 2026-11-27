@@ -6,6 +6,7 @@
     <title>银壶</title>
     <link rel="stylesheet" href="/cover/login.css">
     <script src="/cover/login.js" defer></script>
+    <script src="/cover/login-water.js" defer></script>
     <link rel="stylesheet" href="/vendor/fonts/fonts.css">
     <link rel="stylesheet" href="cover.css">
     <link rel="stylesheet" href="/assets/layout.css">
@@ -13,6 +14,9 @@
     <script type="module" src="/assets/bootstrap.js"></script>
 </head>
 <body class="cover-page">
+    <div class="login-water" aria-hidden="true">
+        <canvas></canvas>
+    </div>
     <form class="login" aria-label="进入银壶" novalidate>
         <input class="login-input" type="password" inputmode="numeric" pattern="[0-9]*"
             aria-label="输入数字密码" autocomplete="off" spellcheck="false" enterkeyhint="go" autofocus>
@@ -29,7 +33,7 @@
     </h1>
 
     <script>
-        // 登录成功后才启动封面，黑屏阶段不运行背景动画。
+        // 登录成功后才启动封面的数字雨。
         window.addEventListener('blackdoor:unlocked', () => {
         document.body.addEventListener('click', () => {
             location.href = '../transition/transition.html';
