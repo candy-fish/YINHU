@@ -1,0 +1,109 @@
+.companions {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 0;
+  height: 0;
+  z-index: 6;
+  pointer-events: none;
+  will-change: transform;
+}
+.deer {
+  position: absolute;
+  left: -48px;
+  bottom: -7.2px;
+  width: 96px;
+  height: 120px;
+  z-index: 3;
+  filter: drop-shadow(0 0 6px #e5eac21d);
+}
+.fish {
+  position: absolute;
+  left: -30px;
+  top: -15px;
+  width: 60px;
+  height: 30px;
+  z-index: 4;
+  transform-origin: center;
+  filter: drop-shadow(0 0 5px #d9e4c122);
+  will-change: transform;
+}
+.deer-facing, .fish-facing {
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  will-change: transform;
+}
+.deer svg, .fish svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.deer-shadow {
+  position: absolute;
+  left: -30px;
+  bottom: -3px;
+  width: 60px;
+  height: 7px;
+  z-index: 1;
+  border-radius: 50%;
+  background: #c5d95126;
+  filter: blur(4px);
+}
+
+.deer.has-hologram {
+  left: -90px;
+  bottom: -24px;
+  width: 180px;
+  height: 192px;
+}
+.deer.has-hologram, .fish.has-hologram { filter: drop-shadow(0 0 4px #c5d95166); }
+.has-hologram .companion-hologram {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.has-hologram > .deer-facing > svg, .has-hologram > .fish-facing > svg { display: none; }
+.deer:not(.has-hologram) svg, .fish:not(.has-hologram) svg { filter: url(#companion-lime); }
+.companion-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.holo-rebuild {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 148px;
+  height: 164px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: var(--rebuild-opacity, 0);
+  color: #c5d951;
+  perspective: 320px;
+  filter: drop-shadow(0 0 5px #c5d951aa);
+}
+.fish .holo-rebuild { top: 50%; width: 84px; height: 68px; }
+.code-orbit {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateZ(calc(var(--orbit) * 53deg - 32deg)) rotateY(calc(48deg + var(--orbit) * 17deg))
+    rotateZ(calc(var(--scan-turn, 0deg) + var(--orbit) * 120deg));
+}
+.code-orbit svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: currentColor;
+  font: 13px monospace;
+  letter-spacing: 2px;
+}
+.code-orbit:nth-child(2) { opacity: .6; }
+.code-orbit:nth-child(3) { opacity: .4; }

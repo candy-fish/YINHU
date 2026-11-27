@@ -63,13 +63,15 @@ function advanceFeet(state, dt, moving, reduced, paused) {
   if (settle.time >= .73) { state.feet = deerRig.map(leg => [...leg.foot]); state.settling = null; state.stepped = false; }
 }
 
+export const companionRevealDuration = 2.6;
+
 // Follow the view with bounded travel instead of tying the animals to the
 // camera. Fast drags can leave them behind; their own travel drives the gait.
-export function advanceMotion(state, { camera, scale, width, dt, reduced = false, paused = false, reset = false, interacting = false }) {
+export function advanceMotion(state, { camera, scale, width, dt, targetX, reduced = false, paused = false, reset = false, interacting = false }) {
   dt = clamp(dt || 1 / 60, 0, .05);
   const worldCamera = camera / scale;
   const anchor = clamp(width / scale * .42, 170, 650);
-  const target = worldCamera + anchor;
+  const target = targetX ?? worldCamera + anchor;
   const cameraVelocity = state.camera === null ? 0 : (worldCamera - state.camera) * scale / dt;
   state.camera = worldCamera;
   let velocity = 0;
@@ -89,7 +91,7 @@ export function advanceMotion(state, { camera, scale, width, dt, reduced = false
     }
     if (state.rebuild !== null) {
       if (!rematerialized) state.rebuild += dt;
-      if (state.rebuild >= 2.6) { state.rebuild = null; state.cameraStill = 0; }
+      if (state.rebuild >= companionRevealDuration) { state.rebuild = null; state.cameraStill = 0; }
     } else {
     const gap = target - state.position;
     const desired = clamp(gap / .22, -280, 280);
@@ -191,7 +193,7 @@ export function advanceMotion(state, { camera, scale, width, dt, reduced = false
     x: state.position,
     lag: target - state.position,
     speed: state.speed,
-    reveal: state.rebuild === null ? 1 : clamp(state.rebuild / 2.6, 0, 1),
+    reveal: state.rebuild === null ? 1 : clamp(state.rebuild / companionRevealDuration, 0, 1),
     rebuildCount: state.rebuildCount,
     mode: state.rebuild !== null ? 'rebuilding' : state.walk > .025 ? run > .42 ? 'running' : 'walking' : 'standing',
     walk: state.walk,
@@ -305,7 +307,7 @@ export function legPose(leg, gait, walk, bob = 0, tilt = 0, graze = 0, placedFoo
   return { thigh, upper: angles.upper - thigh, lower: angles.lower, hoof: -angles.upper - angles.lower + toe, foot, stifle, localFoot };
 }
 
-export function createCompanions(root, reducedMotion) {
+export function createCompanions(root, reducedMotion, loadRenderer) {
   const deer = root.querySelector('.deer-facing');
   const fish = root.querySelector('.fish-facing');
   deer.innerHTML = deerArtwork;
@@ -336,9 +338,14 @@ export function createCompanions(root, reducedMotion) {
   const state = createMotionState();
   let reset = true;
   let holograms = null;
-  const ready = import('./assets/companions-3d.bundle.js')
+  let disposed = false;
+  const ready = loadRenderer()
     .then(module => module.createHologramCompanions(root))
-    .then(renderer => { holograms = renderer; return renderer; });
+    .then(renderer => {
+      if (disposed) renderer.dispose();
+      else holograms = renderer;
+      return renderer;
+    });
   function pivot(node, angle, fallback) {
     if (!node) return;
     const origin = node.getAttribute('data-pivot') || fallback;
@@ -346,9 +353,13 @@ export function createCompanions(root, reducedMotion) {
   }
   return {
     ready,
+    dispose() { disposed = true; holograms?.dispose(); },
     reset() { reset = true; state.followSpeed = state.speed = state.walk = state.run = state.fastTime = state.fastSamples = state.excitement = 0; state.runRequested = state.landing = false; state.feet = deerRig.map(leg => [...leg.foot]); state.settling = null; state.stepped = false; state.silence = 1; },
-    update(view) {
-      const pose = advanceMotion(state, { ...view, reduced: reducedMotion.matches, reset });
+    update(view, entranceReveal) {
+      if (disposed) return;
+      const reduced = reducedMotion.matches;
+      const pose = advanceMotion(state, { ...view, reduced, reset });
+      if (!reduced && entranceReveal !== undefined) pose.reveal = entranceReveal;
       reset = false;
       root.style.transform = `translate3d(${pose.x.toFixed(3)}px,0,0)`;
       root.dataset.motion = pose.mode;
@@ -393,7 +404,7 @@ export function createCompanions(root, reducedMotion) {
       pivot(fin, pose.fin, '135 60');
       shadow.style.transform = `scaleX(${(1 - pose.air * .42 - clamp(pose.bob, 0, 16) * .008).toFixed(3)})`;
       shadow.style.opacity = String((.85 - pose.air * .5) * smooth(pose.reveal));
-      holograms?.update(pose, posedLegs, state.elapsed, reducedMotion.matches);
+      holograms?.update(pose, posedLegs, state.elapsed, reduced);
     }
   };
 }

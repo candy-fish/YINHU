@@ -15,7 +15,7 @@ const editor = $('editor'), detail = $('windowDetail'), form = $('windowForm');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const cosmos = createCosmos($('cosmos'), reducedMotion);
 const aurora = createAurora($('aurora'), reducedMotion);
-const companions = createCompanions($('companions'), reducedMotion);
+const companions = createCompanions($('companions'), reducedMotion, () => import('./assets/companions-3d.bundle.js'));
 let sceneVisible = !arrival?.shown;
 
 let records = [], displayed = [], layouts = [], objectURLs = [];

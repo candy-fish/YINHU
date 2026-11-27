@@ -4,6 +4,52 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden}
 main{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%;touch-action:none;outline:none;-webkit-tap-highlight-color:transparent}
 canvas[hidden]{display:none}
+#earth { opacity: 0; visibility: hidden; }
+#earth[aria-busy="false"] { opacity: 1; visibility: visible; }
+.lunar-outline {
+  --line-width: 2px;
+  position: absolute;
+  inset-inline: 8.6% 12.8%;
+  bottom: 7%;
+  color: #c5d951;
+  pointer-events: none;
+}
+.lunar-door-frame {
+  display: block;
+  height: clamp(84px, min(39vh, 20.5vw), 320px);
+  aspect-ratio: 118 / 215;
+}
+.lunar-outline-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 5px #c5d95166);
+}
+.lunar-outline-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--line-width);
+}
+@media (prefers-reduced-motion: no-preference) {
+  #earth { transition: opacity .65s ease-out; }
+  .lunar-outline-stroke[d] {
+    animation: draw-lunar-outline 1.55s cubic-bezier(.35,.15,.5,1) both;
+  }
+  @keyframes draw-lunar-outline {
+    from { stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+    to { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+  }
+}
+.lunar-companion-stage {
+  position: absolute;
+  inset: auto 0 1px;
+  height: 0;
+  z-index: 1;
+  transform: scale(var(--lunar-companion-scale, 1));
+  transform-origin: left bottom;
+}
 #loadError{position:absolute;inset:0;place-content:center;margin:0;color:#b7c4cc;font:14px/1.6 system-ui,sans-serif;text-align:center}
 #loadError:not([hidden]){display:grid}
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}

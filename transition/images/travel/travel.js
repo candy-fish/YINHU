@@ -1,22 +1,23 @@
 import { Color, MathUtils, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, PlaneGeometry, Scene,
   SphereGeometry, SRGBColorSpace, TextureLoader, WebGLRenderer } from 'three';
 import './travel-map.js';
+import { createLunarCompanions } from './lunar-companions.js';
 
 const canvas = document.getElementById('earth');
-const errorMessage = document.getElementById('loadError');
 
-async function createGlobe() {
+export async function createGlobe(outline, outlineReady) {
+  // The bundled module lives beside the local NASA Black Marble texture.
+  const loader = new TextureLoader();
+  const [texture, lunarTexture] = await Promise.all([
+    loader.loadAsync(new URL('./earth-night-2016.jpg', import.meta.url).href),
+    loader.loadAsync(new URL('./lunar-foreground.png', import.meta.url).href),
+    outlineReady
+  ]);
   const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power' });
   renderer.outputColorSpace = SRGBColorSpace;
   const scene = new Scene();
   scene.background = new Color('#030507');
   const camera = new PerspectiveCamera(35, 1, .1, 100);
-  // The bundled module lives beside the local NASA Black Marble texture.
-  const loader = new TextureLoader();
-  const [texture, lunarTexture] = await Promise.all([
-    loader.loadAsync(new URL('./earth-night-2016.jpg', import.meta.url).href),
-    loader.loadAsync(new URL('./lunar-foreground.png', import.meta.url).href)
-  ]);
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const geometry = new SphereGeometry(1, 128, 64);
@@ -62,6 +63,10 @@ async function createGlobe() {
   foreground.add(lunarSurface);
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const companions = createLunarCompanions(outline, reducedMotion,
+    () => import(new URL('./companions-3d.bundle.js', import.meta.url).href));
+  const modelsReady = companions.ready.catch(error => console.warn('Lunar companion models could not load:', error));
+  let sceneVisible = false, companionsVisible = false;
   let diameter = 1, pendingFrame = 0, drag = null, lastTime = null, lastPaint = -Infinity, disposed = false,
     mapOpen = document.getElementById('travelAtlas').open;
   function animate(time) {
@@ -78,6 +83,15 @@ async function createGlobe() {
       renderer.autoClear = false;
       renderer.render(foreground, foregroundCamera);
       renderer.autoClear = true;
+      if (!sceneVisible) {
+        sceneVisible = true;
+        canvas.setAttribute('aria-busy', 'false');
+        Promise.allSettled([modelsReady, ...canvas.getAnimations().map(animation => animation.finished)]).then(() => {
+          companionsVisible = true;
+          render();
+        });
+      }
+      if (companionsVisible) companions.update(Number.isFinite(lastPaint) ? Math.min(.05, (time - lastPaint) / 1000) : 0);
       lastPaint = time;
     }
     if (!reducedMotion.matches) render();
@@ -96,6 +110,7 @@ async function createGlobe() {
     // Fit the sphere's silhouette to the same fraction of either viewport dimension.
     camera.position.z = Math.sqrt(1 + (height / (diameter * Math.tan(MathUtils.degToRad(camera.fov / 2)))) ** 2);
     camera.updateProjectionMatrix();
+    companions.resize();
     lastPaint = -Infinity;
     render();
   }
@@ -136,7 +151,7 @@ async function createGlobe() {
   window.addEventListener('resize', resize);
   function suspend() {
     cancelAnimationFrame(pendingFrame);
-    pendingFrame = 0; lastTime = null;
+    pendingFrame = 0; lastTime = null; lastPaint = -Infinity;
   }
   document.addEventListener('travel-map-visibility', event => {
     mapOpen = event.detail; suspend(); if (!mapOpen) render();
@@ -151,16 +166,9 @@ async function createGlobe() {
     suspend();
     if (event.persisted) return;
     disposed = true;
+    companions.dispose();
     texture.dispose(); geometry.dispose(); material.dispose();
     lunarTexture.dispose(); lunarGeometry.dispose(); lunarMaterial.dispose(); renderer.dispose();
   });
   resize();
-  canvas.setAttribute('aria-busy', 'false');
 }
-
-createGlobe().catch(error => {
-  console.error('Travel globe could not load:', error);
-  canvas.setAttribute('aria-busy', 'false');
-  canvas.hidden = true;
-  errorMessage.hidden = false;
-});

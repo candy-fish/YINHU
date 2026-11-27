@@ -5,12 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#030507">
   <title>旅行地图 · 映相</title>
+  <link rel="stylesheet" href="../companions.css">
   <link rel="stylesheet" href="travel.css">
-  <script type="module" src="../assets/travel-globe.bundle.js"></script>
+  <script type="module" src="travel-arrival.js"></script>
 </head>
 <body>
   <main aria-label="旅行地图">
     <canvas id="earth" tabindex="0" role="img" aria-label="全球夜间灯光地球，可左右拖动或使用左右方向键旋转" aria-busy="true"></canvas>
+    <div class="lunar-outline" aria-hidden="true">
+      <span class="lunar-door-frame"></span>
+      <svg class="lunar-outline-art" focusable="false">
+        <path class="lunar-outline-stroke" pathLength="1"/>
+      </svg>
+      <div class="lunar-companion-stage" hidden>
+        <svg class="companion-filters" focusable="false"><defs><filter id="companion-lime" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope=".77255"/><feFuncG type="linear" slope=".85098"/><feFuncB type="linear" slope=".31765"/></feComponentTransfer></filter></defs></svg>
+        <div class="companions">
+          <div class="deer-shadow"></div>
+          <div class="deer"><div class="deer-facing"></div></div>
+          <div class="fish"><div class="fish-facing"></div></div>
+        </div>
+      </div>
+    </div>
     <p id="loadError" role="alert" hidden>地球加载失败，请刷新重试。</p>
     <button id="openAtlas" class="palette-entry icon-button" aria-label="打开旅行涂色地图" aria-haspopup="dialog" title="旅行涂色地图">
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.4a2.1 2.1 0 0 0 1.3-3.7 1.4 1.4 0 0 1 1-2.4H18a3 3 0 0 0 3-3C21 7 17 3 12 3Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="11" cy="6.8" r="1"/><circle cx="15.8" cy="8" r="1"/><circle cx="6.8" cy="14.5" r="1"/></svg>
